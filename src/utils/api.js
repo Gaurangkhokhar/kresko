@@ -171,8 +171,103 @@ export const resolveFileUrl = (file) => {
   }
   if (file.startsWith('/')) {
     return `${API_BASE_URL}${file}`;
-  }
+    }
   return `${API_BASE_URL}/uploads/${file}`;
+};
+
+
+/**
+ * Resolve a blog image path/URL to a full URL.
+ * The backend stores blog images as bare filenames under /uploads/blogs/.
+ * Frontend-local paths (e.g. /images/...) are returned untouched.
+ */
+export const resolveBlogImage = (image) => {
+  if (!image) return '/images/product_placeholder.jpg';
+  if (typeof image !== 'string') return '/images/product_placeholder.jpg';
+  if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('data:')) return image;
+  if (image.startsWith('/uploads/')) return `${API_BASE_URL}${image}`;
+  if (image.startsWith('/')) return image; // frontend-local asset (e.g. /images/...)
+  return `${API_BASE_URL}/uploads/blogs/${image}`; // bare filename stored by backend
+};
+
+/**
+ * Resolve a hero slider image path/URL to a full URL.
+ * The backend stores slider images as /uploads/sliders/<filename>.
+ * Frontend-local paths (e.g. /images/...) are returned untouched.
+ */
+export const resolveSliderImage = (image) => {
+  if (!image) return '/images/photo-1528218609959-006f98e6b79e.jpeg';
+  if (typeof image !== 'string') return '/images/photo-1528218609959-006f98e6b79e.jpeg';
+  if (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('data:')) return image;
+  if (image.startsWith('/uploads/')) return `${API_BASE_URL}${image}`;
+  if (image.startsWith('/')) return image; // frontend-local asset
+  return `${API_BASE_URL}/uploads/sliders/${image}`; // bare filename
+};
+
+/** Format an ISO/Date value as 'Month D, YYYY' (matches the existing style). */
+export const formatDate = (date) => {
+  if (!date) return '';
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return '';
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+};
+
+/**
+ * Normalize a backend Blog document into the shape the frontend pages expect.
+ * Works for both backend documents ({ _id, description, content, createdAt })
+ * and legacy localStorage entries ({ id, desc, content, date }).
+ */
+export const normalizeBlog = (blog) => {
+  if (!blog || typeof blog !== 'object') return null;
+  const content = Array.isArray(blog.content)
+    ? blog.content
+    : typeof blog.content === 'string'
+      ? blog.content.split(/\r?\n/).filter((p) => p.trim() !== '')
+      : [];
+  return {
+    id: blog._id || blog.id,
+    _id: blog._id || blog.id,
+    title: blog.title || '',
+    category: blog.category || '',
+    date: blog.date || formatDate(blog.createdAt),
+    desc: blog.description || blog.desc || '',
+    description: blog.description || blog.desc || '',
+    content,
+    image: blog.image ? resolveBlogImage(blog.image) : '/images/product_placeholder.jpg',
+    createdAt: blog.createdAt || '',
+  };
+};
+
+/**
+ * Normalize a backend Slider document into the admin hero-editor + Home
+ * slider shape. Field mapping:
+ *   backend.title   -> admin.tag        (slide badge / tag)
+ *   backend.heading -> admin.title      (slide headline)
+ *   backend.description -> admin.desc   (slide body copy)
+ *   backend.isActive -> admin.overlay   (true by default)
+ */
+export const normalizeSlider = (s) => {
+  if (!s || typeof s !== 'object') return null;
+  const id = s._id || s.id;
+  return {
+    id,
+    _id: id,
+    tag: s.title || '',             // admin badge field
+    title: s.heading || s.title || '', // admin headline field
+    desc: s.description || '',      // admin body field
+    description: s.description || '',
+    heading: s.heading || '',
+    image: s.image ? resolveSliderImage(s.image) : '/images/photo-1528218609959-006f98e6b79e.jpeg',
+    button1Text: s.button1Text || '',
+    button1Link: s.button1Link || '',
+    button2Text: s.button2Text || '',
+    button2Link: s.button2Link || '',
+    isActive: s.isActive !== undefined ? s.isActive : true,
+    overlay: s.isActive !== false,
+    order: s.order != null ? Number(s.order) : 0,
+    createdAt: s.createdAt || '',
+  };
 };
 
 /** Format byte size for display (e.g. 1.2 MB). */
@@ -347,22 +442,31 @@ export const subcategoriesApi = {
 //  BLOGS API  –  /api/blogs
 // ─────────────────────────────────────────────────────────────
 export const blogsApi = {
-  /** Fetch all blog posts. Returns an array. */
+  /**
+   * Fetch all blog posts. Returns a normalized array.
+   * Backend returns a plain array of blog documents.
+   */
   getAll: async () => {
-    const { data } = await api.get('/api/blogs');
-    return data;
+    try {
+      const { data } = await api.get('/api/blogs');
+      const arr = Array.isArray(data) ? data : (data && Array.isArray(data.blogs) ? data.blogs : []);
+      return arr.map(normalizeBlog).filter(Boolean);
+    } catch (err) {
+      if (err && (err.status === 404 || (err.response && err.response.status === 404))) return [];
+      throw err;
+    }
   },
 
-  /** Fetch a single blog post by id. */
+  /** Fetch a single blog post by id (normalized). */
   getById: async (id) => {
     const { data } = await api.get(`/api/blogs/${id}`);
-    return data;
+    return normalizeBlog(data && data.blog ? data.blog : data);
   },
 
   /**
    * Create a blog post with an optional image.
    * Accepts either FormData (with image file) or plain JSON.
-   * Fields: title, description, image (file)
+   * Fields: title, description, category, content, image (file)
    * JWT is automatically attached by the request interceptor.
    */
   create: async (formDataOrPayload) => {
@@ -377,9 +481,82 @@ export const blogsApi = {
     return data;
   },
 
+  /** Alias for create to support upload calls */
+  upload: async (formDataOrPayload) => {
+    return blogsApi.create(formDataOrPayload);
+  },
+
   /** Delete a blog post by id. JWT required. */
   delete: async (id) => {
     const { data } = await api.delete(`/api/blogs/${id}`);
+    return data;
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
+//  HERO SLIDERS API  –  /api/sliders
+//  Full homepage hero slide management. The backend stores images as
+//  /uploads/sliders/<filename>; multipart upload is used when an image
+//  File is present, otherwise a plain JSON body is sent. JWT is
+//  automatically attached by the request interceptor.
+// ─────────────────────────────────────────────────────────────
+export const heroSlidesApi = {
+  /** Fetch all hero sliders (public). Returns a normalized array. */
+  getAll: async () => {
+    try {
+      const { data } = await api.get('/api/sliders');
+      const arr = (data && Array.isArray(data.sliders)) ? data.sliders : (Array.isArray(data) ? data : []);
+      return arr.map(normalizeSlider).filter(Boolean);
+    } catch (err) {
+      try {
+        const { data } = await api.get('/api/hero-slides');
+        const arr = (data && Array.isArray(data.sliders)) ? data.sliders : (Array.isArray(data) ? data : (data && Array.isArray(data.slides) ? data.slides : []));
+        return arr.map(normalizeSlider).filter(Boolean);
+      } catch (_err2) {
+        if (err && (err.status === 404 || (err.response && err.response.status === 404))) return [];
+        throw err;
+      }
+    }
+  },
+
+  /** Fetch a single slider by id (public). */
+  getById: async (id) => {
+    const { data } = await api.get(`/api/sliders/${id}`);
+    const slider = data && data.slider ? data.slider : data;
+    return normalizeSlider(slider);
+  },
+
+  /**
+   * Create a slider (admin). Accepts FormData (with image file) or a plain
+   * object. Fields map to the backend: title(badge)=tag, heading=title,
+   * description=desc, image, isActive=overlay, order, button1/2Text/Link.
+   */
+  create: async (payloadOrFormData) => {
+    const isFormData = payloadOrFormData instanceof FormData;
+    const { data } = await api.post(
+      '/api/sliders',
+      payloadOrFormData,
+      isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+    );
+    const slider = data && data.slider ? data.slider : data;
+    return normalizeSlider(slider);
+  },
+
+  /** Update a slider by id (admin). Multipart (new image) or JSON. */
+  update: async (id, payloadOrFormData) => {
+    const isFormData = payloadOrFormData instanceof FormData;
+    const { data } = await api.put(
+      `/api/sliders/${id}`,
+      payloadOrFormData,
+      isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined
+    );
+    const slider = data && data.slider ? data.slider : data;
+    return normalizeSlider(slider);
+  },
+
+  /** Delete a slider by id (admin). */
+  delete: async (id) => {
+    const { data } = await api.delete(`/api/sliders/${id}`);
     return data;
   },
 };
@@ -600,14 +777,19 @@ export const careerApi = {
 export const catalogApi = {
   // Get all catalogs
   getAll: async () => {
-    const { data } = await api.get("/api/catalog");
+    try {
+      const { data } = await api.get("/api/catalog");
 
-    if (Array.isArray(data)) return data;
-    if (data && Array.isArray(data.catalogs)) return data.catalogs;
-    if (data && data.catalog) return [data.catalog];
-    if (data && data._id) return [data];
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.catalogs)) return data.catalogs;
+      if (data && data.catalog) return [data.catalog];
+      if (data && data._id) return [data];
 
-    return [];
+      return [];
+    } catch (err) {
+      if (err && (err.status === 404 || (err.response && err.response.status === 404))) return [];
+      throw err;
+    }
   },
 
   // Get one catalog
@@ -647,7 +829,7 @@ export const catalogApi = {
     return data;
   },
 };
-  
+
 
 
 // ─────────────────────────────────────────────────────────────

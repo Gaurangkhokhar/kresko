@@ -7,7 +7,7 @@ export default function Products() {
   const [categories, setCategories] = useState(getProductCategories());
   const { categoryId } = useParams();
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     const reloadCategories = () => {
       const cats = getProductCategories();
@@ -22,7 +22,7 @@ export default function Products() {
     window.addEventListener('categoriesUpdated', reloadCategories);
     return () => window.removeEventListener('categoriesUpdated', reloadCategories);
   }, [categoryId]);
-  
+
   // Set active selector (can be category slug or subcategory slug)
   const [activeSelector, setActiveSelector] = useState(categoryId || Object.keys(getProductCategories())[0] || 'home-care');
   const [searchText, setSearchText] = useState('');
@@ -72,7 +72,7 @@ export default function Products() {
     setActiveSelector(key);
     setIsMobileSidebarOpen(false); // Collapse sidebar
     navigate(`/products/${key}`);
-    
+
     // Smooth scroll down to products grid
     setTimeout(() => {
       const mainContent = document.querySelector('.explorer-main');
@@ -103,7 +103,7 @@ export default function Products() {
     activeIcon = categories[activeSelector].icon;
   } else {
     // Traverse to locate subcategory details
-    for (const [catKey, catVal] of Object.entries(categories)) {
+    for (const [, catVal] of Object.entries(categories)) {
       if (catVal.subcategories && catVal.subcategories[activeSelector]) {
         activeTitle = catVal.subcategories[activeSelector];
         activeDesc = `Premium grade ${catVal.subcategories[activeSelector]} engineered for consistent performance and safe transportation stability.`;
@@ -164,54 +164,54 @@ export default function Products() {
             {/* Left Panel: Active Subcategory Description & Product Items */}
             <main className="explorer-main">
               {/* Category Info Header */}
-              <div 
+              <div
                 className="swadesh-banner-container"
-                style={{ 
+                style={{
                 position: 'relative',
-                borderRadius: '8px', 
+                borderRadius: '8px',
                 overflow: 'hidden',
                 padding: '2.5rem',
                 marginBottom: '2.5rem',
                 boxShadow: 'var(--shadow-sm)'
               }}>
                 {/* Background image */}
-                <img 
-                  src={headerBgImage} 
-                  alt={activeTitle} 
-                  style={{ 
-                    position: 'absolute', 
-                    top: 0, 
-                    left: 0, 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover', 
-                    zIndex: 1 
-                  }} 
+                <img
+                  src={headerBgImage}
+                  alt={activeTitle}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    zIndex: 1
+                  }}
                 />
                 {/* Dark Overlay */}
-                <div style={{ 
-                  position: 'absolute', 
-                  top: 0, 
-                  left: 0, 
-                  width: '100%', 
-                  height: '100%', 
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
                   background: 'linear-gradient(to right, rgba(15, 23, 42, 0.95) 45%, rgba(15, 23, 42, 0.6) 100%)',
-                  zIndex: 2 
+                  zIndex: 2
                 }} />
 
                 {/* Content Container */}
                 <div style={{ position: 'relative', zIndex: 3, color: '#fff' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                    <div style={{ 
-                      width: '50px', 
-                      height: '50px', 
-                      borderRadius: '50%', 
-                      backgroundColor: 'rgba(255, 255, 255, 0.15)', 
-                      color: '#ffffff', 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                    <div style={{
+                      width: '50px',
+                      height: '50px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '1.5rem' 
+                      fontSize: '1.5rem'
                     }}>
                       {activeIcon && activeIcon.startsWith('fa-') ? (
                         <i className={`fa-solid ${activeIcon}`}></i>
@@ -238,8 +238,8 @@ export default function Products() {
               {/* Product Listing Stack - Premium horizontal split cards stacked vertically */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', alignItems: 'center', width: '100%' }}>
                 {filteredProducts.map(p => (
-                  <div 
-                    key={p.id} 
+                  <div
+                    key={p.id}
                     className="product-horizontal-card"
                     style={{
                       display: 'flex',
@@ -299,75 +299,75 @@ export default function Products() {
                         </button>
                       </div>
                     )}
-                    
+
                     {/* Left half: Radial Image Stage Canvas - Elevated 320px Height */}
-                    <div 
-                      className="product-img-box" 
-                      style={{ 
-                        width: '320px', 
-                        minWidth: '320px', 
-                        height: '320px', 
-                        padding: '1.5rem', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center', 
-                        background: 'radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%)', 
+                    <div
+                      className="product-img-box"
+                      style={{
+                        width: '320px',
+                        minWidth: '320px',
+                        height: '320px',
+                        padding: '1.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%)',
                         borderRight: '1px solid #edf2f7',
-                        position: 'relative' 
+                        position: 'relative'
                       }}
                     >
                       {p.tag && (
-                        <span 
-                          style={{ 
-                            position: 'absolute', 
-                            top: '16px', 
-                            left: '16px', 
-                            backgroundColor: 'var(--color-accent)', 
-                            color: '#ffffff', 
-                            fontSize: '0.68rem', 
-                            fontWeight: 800, 
-                            padding: '0.3rem 0.75rem', 
-                            borderRadius: '20px', 
-                            textTransform: 'uppercase', 
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: '16px',
+                            left: '16px',
+                            backgroundColor: 'var(--color-accent)',
+                            color: '#ffffff',
+                            fontSize: '0.68rem',
+                            fontWeight: 800,
+                            padding: '0.3rem 0.75rem',
+                            borderRadius: '20px',
+                            textTransform: 'uppercase',
                             letterSpacing: '0.5px',
                             boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
-                            zIndex: 5 
+                            zIndex: 5
                           }}
                         >
                           {p.tag}
                         </span>
                       )}
 
-                      <ProductImage 
-                        category={p.category} 
-                        title={p.title} 
-                        image={p.image} 
-                        style={{ 
-                          maxHeight: '260px', 
-                          maxWidth: '100%', 
+                      <ProductImage
+                        category={p.category}
+                        title={p.title}
+                        image={p.image}
+                        style={{
+                          maxHeight: '260px',
+                          maxWidth: '100%',
                           objectFit: 'contain',
                           filter: 'drop-shadow(0 12px 22px rgba(0, 0, 0, 0.09))',
-                          transition: 'transform 0.3s ease' 
-                        }} 
+                          transition: 'transform 0.3s ease'
+                        }}
                       />
                     </div>
-                    
+
                     {/* Right half: Elevated Detail Box - Spacious Height */}
                     <div className="product-info-box" style={{ padding: '1.85rem 2rem', display: 'flex', flexDirection: 'column', flexGrow: 1, justifyContent: 'space-between' }}>
                       <div>
                         <h4 className="product-item-title" style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--color-primary)', margin: '0 0 0.65rem 0', lineHeight: '1.3', display: '-webkit-box', WebkitLineClamp: '1', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                           {p.title}
                         </h4>
-                        
+
                         <p style={{ fontSize: '0.88rem', color: '#64748b', lineHeight: '1.65', display: '-webkit-box', WebkitLineClamp: '3', WebkitBoxOrient: 'vertical', overflow: 'hidden', margin: '0 0 1.25rem 0' }}>
                           {p.desc}
                         </p>
                       </div>
-                      
+
                       <div>
                         {/* Parameter Data Chips Grid */}
                         <div className="product-param-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', margin: '0 0 1.25rem 0' }}>
-                          
+
                           {/* Price Chip */}
                           <div className="product-param-chip" style={{ backgroundColor: 'rgba(220, 38, 38, 0.05)', border: '1px solid rgba(220, 38, 38, 0.12)', borderRadius: '10px', padding: '0.65rem 0.75rem' }}>
                             <span style={{ display: 'block', fontSize: '0.62rem', fontWeight: 800, color: '#991b1b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Price</span>
@@ -393,19 +393,19 @@ export default function Products() {
                           </div>
 
                         </div>
-                        
+
                         {/* Elevated CTA Button */}
-                        <Link 
-                          to={`/products/${p.category}/${p.id}`} 
-                          className="btn btn-primary" 
-                          style={{ 
-                            width: '100%', 
-                            borderRadius: '10px', 
-                            background: 'linear-gradient(135deg, #1b2a47 0%, #0f172a 100%)', 
-                            borderColor: '#1b2a47', 
-                            padding: '0.85rem 1rem', 
-                            fontSize: '0.86rem', 
-                            textAlign: 'center', 
+                        <Link
+                          to={`/products/${p.category}/${p.id}`}
+                          className="btn btn-primary"
+                          style={{
+                            width: '100%',
+                            borderRadius: '10px',
+                            background: 'linear-gradient(135deg, #1b2a47 0%, #0f172a 100%)',
+                            borderColor: '#1b2a47',
+                            padding: '0.85rem 1rem',
+                            fontSize: '0.86rem',
+                            textAlign: 'center',
                             fontWeight: '800',
                             letterSpacing: '0.4px',
                             display: 'flex',
@@ -435,7 +435,7 @@ export default function Products() {
 
             {/* Right Sidebar: Subcategories grouped under Major Categories */}
             <div>
-              <button 
+              <button
                 onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
                 className="btn btn-secondary mobile-filter-toggle"
                 style={{
@@ -462,16 +462,16 @@ export default function Products() {
               <aside className={`explorer-sidebar ${isMobileSidebarOpen ? 'mobile-show' : 'mobile-hide'}`}>
                 {/* Search Bar */}
                 <div className="sidebar-heading-input" style={{ marginBottom: '1.5rem', position: 'relative' }}>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    placeholder="Search products..." 
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search products..."
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
-                    style={{ 
-                      width: '100%', 
-                      padding: '0.65rem 1rem 0.65rem 2.25rem', 
-                      borderRadius: '30px', 
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 1rem 0.65rem 2.25rem',
+                      borderRadius: '30px',
                       border: '1px solid var(--color-border)',
                       fontSize: '0.85rem'
                     }}
@@ -538,12 +538,12 @@ export default function Products() {
                                 }}
                                 className="sidebar-subcat-btn"
                               >
-                                <span style={{ 
-                                  width: '5px', 
-                                  height: '5px', 
-                                  borderRadius: '50%', 
+                                <span style={{
+                                  width: '5px',
+                                  height: '5px',
+                                  borderRadius: '50%',
                                   backgroundColor: isSubActive ? 'var(--color-accent)' : 'var(--color-text-muted)',
-                                  display: 'inline-block' 
+                                  display: 'inline-block'
                                 }}></span>
                                 {subVal}
                               </button>

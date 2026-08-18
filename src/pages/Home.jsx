@@ -1,17 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getReviews, getProducts, getBlogs, saveEnquiry, getHeroSlides, getProductCategories } from '../utils/storage';
-import ProductImage from '../components/ProductImage';
+import { getReviews, getBlogs, saveEnquiry, getHeroSlides, getProductCategories } from '../utils/storage';
+import { blogsApi, heroSlidesApi } from '../utils/api';
 import EditableText from '../components/EditableText';
 import FaqSection from '../components/FaqSection';
 
 export default function Home() {
   // Hero Slide State
   const [currentSlide, setCurrentSlide] = useState(0);
-  // Load hero slides from the admin-editable config (falls back to defaults).
-  const [slides] = useState(() => getHeroSlides());
+  const [slides, setSlides] = useState(() => getHeroSlides());
 
   useEffect(() => {
+    const loadHeroSlides = async () => {
+      try {
+        const data = await heroSlidesApi.getAll();
+        if (Array.isArray(data) && data.length > 0) {
+          const activeSlides = data
+            .filter(s => s.isActive !== false && s.active !== false)
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
+          if (activeSlides.length > 0) {
+            setSlides(activeSlides);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Home: failed to fetch hero slides from backend, using fallback:', err);
+      }
+      const fallback = getHeroSlides().filter(s => s.overlay !== false && s.active !== false);
+      setSlides(fallback.length > 0 ? fallback : getHeroSlides());
+    };
+
+    loadHeroSlides();
+  }, []);
+
+  useEffect(() => {
+    if (slides.length <= 1) return;
     const interval = setInterval(() => {
       setCurrentSlide(prev => (prev + 1) % slides.length);
     }, 6000);
@@ -47,7 +70,23 @@ export default function Home() {
 
   useEffect(() => {
     setTestimonials(getReviews());
-    setRecentBlogs(getBlogs().slice(0, 3));
+
+    // Fetch blogs from backend
+    const loadBlogs = async () => {
+      try {
+        const data = await blogsApi.getAll();
+        if (Array.isArray(data) && data.length > 0) {
+          setRecentBlogs(data.slice(0, 3));
+        } else {
+          setRecentBlogs(getBlogs().slice(0, 3));
+        }
+      } catch (err) {
+        console.warn('Home: failed to fetch blogs from backend, using fallback:', err);
+        setRecentBlogs(getBlogs().slice(0, 3));
+      }
+    };
+    loadBlogs();
+
     // Load product categories for the homepage explorer.
     setHomeCategories(Object.entries(getProductCategories()));
   }, []);
@@ -101,12 +140,12 @@ export default function Home() {
     <div>
       {/* 1. Hero Slider Banner */}
       <section className="hero-slider">
-        <div 
+        <div
           className="hero-track"
           style={{ transform: `translate3d(-${currentSlide * 100}%, 0, 0)` }}
         >
           {slides.map((slide, index) => (
-            <div 
+            <div
               key={index}
               className={slide.overlay === false ? 'hero-slide no-overlay' : 'hero-slide'}
               style={{ backgroundImage: `url(${slide.image})` }}
@@ -132,15 +171,15 @@ export default function Home() {
           ))}
         </div>
 
-        <button 
-          className="slider-arrow slider-arrow-prev" 
+        <button
+          className="slider-arrow slider-arrow-prev"
           onClick={() => setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length)}
           aria-label="Previous Slide"
         >
           <i className="fa-solid fa-chevron-left"></i>
         </button>
-        <button 
-          className="slider-arrow slider-arrow-next" 
+        <button
+          className="slider-arrow slider-arrow-next"
           onClick={() => setCurrentSlide(prev => (prev + 1) % slides.length)}
           aria-label="Next Slide"
         >
@@ -227,11 +266,11 @@ export default function Home() {
               <img src="/images/mfg_high_concentration.png" alt="High Concentration Technology" />
               <div className="industries-card-content" style={{ zIndex: 3 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                  <div style={{ 
-                    width: '36px', 
-                    height: '36px', 
-                    borderRadius: '4px', 
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)', 
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '4px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
                     color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
@@ -253,11 +292,11 @@ export default function Home() {
               <img src="/images/mfg_oem_private_label.png" alt="OEM & Private Label" />
               <div className="industries-card-content" style={{ zIndex: 3 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                  <div style={{ 
-                    width: '36px', 
-                    height: '36px', 
-                    borderRadius: '4px', 
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)', 
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '4px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
                     color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
@@ -279,11 +318,11 @@ export default function Home() {
               <img src="/images/mfg_custom_development.png" alt="Custom Development" />
               <div className="industries-card-content" style={{ zIndex: 3 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                  <div style={{ 
-                    width: '36px', 
-                    height: '36px', 
-                    borderRadius: '4px', 
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)', 
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '4px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
                     color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
@@ -305,11 +344,11 @@ export default function Home() {
               <img src="/images/mfg_quality_assurance.png" alt="Quality Assurance" />
               <div className="industries-card-content" style={{ zIndex: 3 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                  <div style={{ 
-                    width: '36px', 
-                    height: '36px', 
-                    borderRadius: '4px', 
-                    backgroundColor: 'rgba(255, 255, 255, 0.15)', 
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '4px',
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
                     color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
@@ -343,25 +382,25 @@ export default function Home() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2.5rem' }}>
             {industries.map(ind => (
-              <div 
-                key={ind.id} 
+              <div
+                key={ind.id}
                 className="industries-card"
                 style={{ height: '360px' }}
               >
                 {/* Background image */}
-                <img 
-                  src={ind.image} 
-                  alt={ind.name} 
+                <img
+                  src={ind.image}
+                  alt={ind.name}
                 />
 
                 {/* Content Container */}
                 <div className="industries-card-content" style={{ zIndex: 3 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                    <div style={{ 
-                      width: '36px', 
-                      height: '36px', 
-                      borderRadius: '4px', 
-                      backgroundColor: 'rgba(255, 255, 255, 0.15)', 
+                    <div style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '4px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
                       color: '#ffffff',
                       display: 'flex',
                       alignItems: 'center',
@@ -464,14 +503,14 @@ export default function Home() {
             }
           }
         `}</style>
-        
+
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <span style={{ 
-            fontSize: '0.8rem', 
-            letterSpacing: '2px', 
-            textTransform: 'uppercase', 
-            color: 'var(--color-text-muted)', 
-            fontWeight: 700 
+          <span style={{
+            fontSize: '0.8rem',
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            color: 'var(--color-text-muted)',
+            fontWeight: 700
           }}>
             Our Certifications, Accreditations & Brands
           </span>
@@ -520,8 +559,8 @@ export default function Home() {
       <section className="section testimonials-section">
         <div className="container">
           <div className="testimonials-slider">
-            <div 
-              className="testimonials-track" 
+            <div
+              className="testimonials-track"
               style={{ transform: `translateX(-${currentTestimonial * 100}%)` }}
             >
               {testimonials.map((test, index) => (
@@ -540,7 +579,7 @@ export default function Home() {
 
             <div className="testimonial-dots">
               {testimonials.map((_, index) => (
-                <button 
+                <button
                   key={index}
                   className={`testimonial-dot ${index === currentTestimonial ? 'active' : ''}`}
                   onClick={() => setCurrentTestimonial(index)}
@@ -601,9 +640,9 @@ export default function Home() {
             </p>
 
             {statusMsg && (
-              <div style={{ 
-                padding: '1rem', 
-                borderRadius: '4px', 
+              <div style={{
+                padding: '1rem',
+                borderRadius: '4px',
                 marginBottom: '1.5rem',
                 backgroundColor: statusType === 'success' ? '#def7ec' : '#fde8e8',
                 color: statusType === 'success' ? '#03543f' : '#9b1c1c',

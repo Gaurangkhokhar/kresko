@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { getProducts, getProductCategories, saveEnquiry } from '../utils/storage';
 import ProductImage from '../components/ProductImage';
 
 export default function ProductDetail() {
   const [categories, setCategories] = useState(getProductCategories());
   const { categoryId, productId } = useParams();
-  const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
   const [categoryName, setCategoryName] = useState('');
-  
+
   // Interactive UI States
   const [activeTab, setActiveTab] = useState('desc');
   const [activeView, setActiveView] = useState('main');
@@ -18,7 +17,7 @@ export default function ProductDetail() {
   const [selectedPack, setSelectedPack] = useState('');
   const [quantity, setQuantity] = useState(50);
   const [quantityUnit, setQuantityUnit] = useState('KG');
-  
+
   // Inquiry Form Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState('');
@@ -43,7 +42,7 @@ export default function ProductDetail() {
     if (catInfo) {
       setCategoryName(catInfo.name);
     } else {
-      for (const [catKey, catVal] of Object.entries(categories)) {
+      for (const [, catVal] of Object.entries(categories)) {
         if (catVal.subcategories && catVal.subcategories[categoryId]) {
           setCategoryName(catVal.subcategories[categoryId]);
           break;
@@ -65,10 +64,10 @@ export default function ProductDetail() {
       if (packOptions.length > 0) {
         setSelectedPack(packOptions[0]);
       }
-      
+
       setMessage(`Hello Kresko Team, I am interested in purchasing "${foundProduct.title}" with a target quantity of ${quantity} ${quantityUnit} in "${packOptions[0] || '50 KG Drum'}". Please share commercial terms and COA documents.`);
     }
-  }, [categoryId, productId, categories]);
+  }, [categoryId, productId, categories, quantity, quantityUnit]);
 
   // Update prefilled message when quantity/unit/pack changes
   useEffect(() => {
@@ -139,7 +138,7 @@ export default function ProductDetail() {
     saveEnquiry(newEnquiry);
     setStatusType('success');
     setStatusMsg(`Thank you, ${name}! Your B2B quotation request has been received. Our sales desk will email the quote and COA documents within 12 hours.`);
-    
+
     // Clear fields and close modal after delay
     setTimeout(() => {
       setIsModalOpen(false);
@@ -157,12 +156,12 @@ export default function ProductDetail() {
 
   return (
     <div style={{ backgroundColor: '#fff', minHeight: '100vh', paddingBottom: '4rem' }}>
-      
+
       {/* 1. Breadcrumbs Header Bar */}
       <div style={{ backgroundColor: 'var(--color-bg-light)', borderBottom: '1px solid var(--color-border)', padding: '0.85rem 0' }}>
         <div className="container" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', fontWeight: 500 }}>
-          <Link to="/" style={{ color: 'var(--color-primary)' }}>Home</Link> &gt; 
-          <Link to={`/products/${product.category}`} style={{ color: 'var(--color-primary)' }}>{categoryName}</Link> &gt; 
+          <Link to="/" style={{ color: 'var(--color-primary)' }}>Home</Link> &gt;
+          <Link to={`/products/${product.category}`} style={{ color: 'var(--color-primary)' }}>{categoryName}</Link> &gt;
           <span style={{ fontWeight: 700, color: 'var(--color-accent)' }}>{product.title}</span>
         </div>
       </div>
@@ -185,18 +184,18 @@ export default function ProductDetail() {
       {/* 3. Main Product Box Display */}
       <section style={{ padding: '1rem 0' }}>
         <div className="container swadesh-details-grid">
-          
+
           {/* Left Column: Premium Image Gallery Showcase */}
           <div>
             {/* Main Image Stage Box */}
-            <div 
+            <div
               className="product-detail-stage-box"
-              style={{ 
-                position: 'relative', 
-                backgroundColor: '#ffffff', 
-                borderRadius: '16px', 
-                border: '1px solid rgba(226, 232, 240, 0.8)', 
-                boxShadow: '0 12px 32px -8px rgba(15, 23, 42, 0.08)', 
+              style={{
+                position: 'relative',
+                backgroundColor: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid rgba(226, 232, 240, 0.8)',
+                boxShadow: '0 12px 32px -8px rgba(15, 23, 42, 0.08)',
                 overflow: 'hidden',
                 display: 'flex',
                 height: '400px',
@@ -204,15 +203,15 @@ export default function ProductDetail() {
               }}
             >
               {/* Sleek Vertical Trust Badge Strip */}
-              <div 
+              <div
                 className="product-trust-strip"
-                style={{ 
-                  width: '95px', 
-                  backgroundColor: '#f8fafc', 
-                  borderRight: '1px solid #e2e8f0', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center', 
+                style={{
+                  width: '95px',
+                  backgroundColor: '#f8fafc',
+                  borderRight: '1px solid #e2e8f0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '1.25rem 0.5rem'
                 }}
@@ -221,7 +220,7 @@ export default function ProductDetail() {
                   <img src="/images/kresko_logo.png" alt="Kresko Logo" style={{ width: '38px', height: '38px', objectFit: 'contain' }} />
                   <span style={{ fontSize: '0.62rem', fontWeight: 950, color: 'var(--color-primary)', letterSpacing: '0.5px' }}>KRESKO</span>
                 </div>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', alignItems: 'center', width: '100%' }}>
                   {[
                     { icon: 'fa-circle-check', color: '#10b981', label: 'GMP' },
@@ -229,12 +228,12 @@ export default function ProductDetail() {
                     { icon: 'fa-certificate', color: '#f59e0b', label: 'HALAL' },
                     { icon: 'fa-award', color: '#8b5cf6', label: 'ISO' }
                   ].map((badge, bIdx) => (
-                    <div 
+                    <div
                       key={bIdx}
-                      style={{ 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        alignItems: 'center', 
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
                         gap: '4px',
                         padding: '0.45rem 0.3rem',
                         borderRadius: '8px',
@@ -252,30 +251,30 @@ export default function ProductDetail() {
               </div>
 
               {/* Main Active Image Canvas */}
-              <div 
-                style={{ 
-                  flexGrow: 1, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  padding: '2.5rem 2rem', 
+              <div
+                style={{
+                  flexGrow: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '2.5rem 2rem',
                   position: 'relative',
                   background: 'radial-gradient(circle at center, #ffffff 0%, #f8fafc 100%)'
                 }}
               >
                 {product.tag && (
-                  <span 
-                    style={{ 
-                      position: 'absolute', 
-                      top: '16px', 
-                      right: '16px', 
-                      backgroundColor: 'var(--color-accent)', 
-                      color: '#fff', 
-                      fontSize: '0.65rem', 
-                      fontWeight: 800, 
-                      padding: '0.3rem 0.75rem', 
-                      borderRadius: '20px', 
-                      textTransform: 'uppercase', 
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '16px',
+                      right: '16px',
+                      backgroundColor: 'var(--color-accent)',
+                      color: '#fff',
+                      fontSize: '0.65rem',
+                      fontWeight: 800,
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: '20px',
+                      textTransform: 'uppercase',
                       letterSpacing: '0.6px',
                       boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)'
                     }}
@@ -285,23 +284,23 @@ export default function ProductDetail() {
                 )}
 
                 {/* Main Image with smooth drop shadow */}
-                <img 
-                  src={mainImageUrl} 
-                  alt={product.title} 
-                  style={{ 
-                    maxHeight: '300px', 
-                    maxWidth: '100%', 
+                <img
+                  src={mainImageUrl}
+                  alt={product.title}
+                  style={{
+                    maxHeight: '300px',
+                    maxWidth: '100%',
                     objectFit: 'contain',
                     filter: 'drop-shadow(0 12px 20px rgba(0, 0, 0, 0.08))',
                     transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                  }} 
+                  }}
                 />
               </div>
             </div>
 
             {/* Unified Interactive Gallery & Segmented View Control */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginTop: '1.25rem' }}>
-              
+
               {/* 1. Image Angle Thumbnails (if multiple product images exist) */}
               {product.images && product.images.length > 1 && (
                 <div>
@@ -343,14 +342,14 @@ export default function ProductDetail() {
               )}
 
               {/* 2. Sleek Segmented Control Bar for Context Views */}
-              <div 
-                style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(4, 1fr)', 
-                  gap: '0.4rem', 
-                  padding: '0.35rem', 
-                  backgroundColor: '#f1f5f9', 
-                  borderRadius: '12px' 
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: '0.4rem',
+                  padding: '0.35rem',
+                  backgroundColor: '#f1f5f9',
+                  borderRadius: '12px'
                 }}
               >
                 {[
@@ -402,19 +401,19 @@ export default function ProductDetail() {
             </p>
 
             {/* B2B Product Specifications Card */}
-            <div 
-              style={{ 
-                backgroundColor: 'rgba(27, 42, 71, 0.02)', 
-                border: '1px solid rgba(27, 42, 71, 0.06)', 
-                borderRadius: '8px', 
-                padding: '1.25rem', 
-                marginBottom: '1.5rem' 
+            <div
+              style={{
+                backgroundColor: 'rgba(27, 42, 71, 0.02)',
+                border: '1px solid rgba(27, 42, 71, 0.06)',
+                borderRadius: '8px',
+                padding: '1.25rem',
+                marginBottom: '1.5rem'
               }}
             >
               <h4 style={{ fontSize: '0.78rem', fontWeight: 900, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 1rem 0', borderBottom: '1px solid rgba(27, 42, 71, 0.08)', paddingBottom: '0.4rem' }}>
                 Product Specifications
               </h4>
-              
+
               <div className="swadesh-specs-grid">
                 {/* Column 1 */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -431,7 +430,7 @@ export default function ProductDetail() {
                     <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-primary)' }}>{getSpecValue('appearance')}</span>
                   </div>
                 </div>
-                
+
                 {/* Column 2 */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <div>
@@ -485,22 +484,22 @@ export default function ProductDetail() {
                 Quantity (Min. Order: 50 KG)
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <button 
+                <button
                   onClick={decrementQty}
                   style={{ width: '40px', height: '40px', border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: '#f8fafc', fontSize: '1.2rem', fontWeight: 'bold', cursor: 'pointer' }}
                 >-</button>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   value={quantity}
                   onChange={(e) => setQuantity(Math.max(25, parseInt(e.target.value) || 0))}
-                  style={{ width: '80px', height: '40px', textAlign: 'center', border: '1px solid var(--color-border)', borderRadius: '4px', fontSize: '0.9rem', fontWeight: 'bold' }} 
+                  style={{ width: '80px', height: '40px', textAlign: 'center', border: '1px solid var(--color-border)', borderRadius: '4px', fontSize: '0.9rem', fontWeight: 'bold' }}
                 />
-                <button 
+                <button
                   onClick={incrementQty}
                   style={{ width: '40px', height: '40px', border: '1px solid var(--color-border)', borderRadius: '4px', backgroundColor: '#f8fafc', fontSize: '1.2rem', fontWeight: 'bold', cursor: 'pointer' }}
                 >+</button>
 
-                <select 
+                <select
                   value={quantityUnit}
                   onChange={(e) => setQuantityUnit(e.target.value)}
                   style={{ height: '40px', border: '1px solid var(--color-border)', borderRadius: '4px', padding: '0 0.5rem', fontWeight: 'bold', fontSize: '0.85rem' }}
@@ -514,16 +513,16 @@ export default function ProductDetail() {
 
             {/* Main CTA Buttons */}
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-              <button 
+              <button
                 onClick={() => setIsModalOpen(true)}
-                className="btn" 
-                style={{ 
-                  flexGrow: 1, 
-                  backgroundColor: 'var(--color-accent)', 
-                  color: '#fff', 
-                  borderRadius: '6px', 
-                  padding: '0.85rem 0', 
-                  fontWeight: 800, 
+                className="btn"
+                style={{
+                  flexGrow: 1,
+                  backgroundColor: 'var(--color-accent)',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  padding: '0.85rem 0',
+                  fontWeight: 800,
                   fontSize: '0.85rem',
                   border: 'none',
                   cursor: 'pointer',
@@ -532,19 +531,19 @@ export default function ProductDetail() {
               >
                 Request Quote
               </button>
-              
-              <a 
+
+              <a
                 href={`https://wa.me/919377998866?text=Hello%20Kresko%20Chemicals,%20I%20am%20interested%20in%20"${encodeURIComponent(product.title)}"%20with%20quantity%20"${quantity}%20${quantityUnit}"%20in%20"${selectedPack}".%20Please%20send%20commercial%20quote.`}
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="btn" 
-                style={{ 
-                  flexGrow: 1, 
-                  backgroundColor: 'var(--color-primary)', 
-                  color: '#fff', 
-                  borderRadius: '6px', 
-                  padding: '0.85rem 0', 
-                  fontWeight: 800, 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn"
+                style={{
+                  flexGrow: 1,
+                  backgroundColor: 'var(--color-primary)',
+                  color: '#fff',
+                  borderRadius: '6px',
+                  padding: '0.85rem 0',
+                  fontWeight: 800,
                   fontSize: '0.85rem',
                   border: 'none',
                   cursor: 'pointer',
@@ -588,7 +587,7 @@ export default function ProductDetail() {
       {/* 4. Swadesh-Style Dynamic Tabbed Details (Description / Specs / Applications / Documents) */}
       <section style={{ padding: '3rem 0 1rem 0' }}>
         <div className="container">
-          
+
           {/* Tab Headers */}
           <div className="swadesh-tabs-header">
             {[
@@ -621,7 +620,7 @@ export default function ProductDetail() {
 
           {/* Tab Body Contents */}
           <div style={{ minHeight: '260px' }}>
-            
+
             {/* DESC TAB */}
             {activeTab === 'desc' && (
               <div>
@@ -749,7 +748,7 @@ export default function ProductDetail() {
               <div>
                 <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '1.5rem' }}>Technical Documents & Certificates Downloads</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
-                  
+
                   <div style={{ padding: '1.25rem', border: '1px solid var(--color-border)', borderRadius: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', backgroundColor: '#fff' }}>
                     <div>
                       <h4 style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--color-primary)', margin: '0 0 0.25rem 0' }}>Technical Data Sheet (TDS)</h4>
@@ -810,7 +809,7 @@ export default function ProductDetail() {
 
             <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '2rem' }}>
               {relatedProducts.map(p => (
-                <div 
+                <div
                   key={p.id}
                   style={{
                     backgroundColor: '#fff',
@@ -848,7 +847,7 @@ export default function ProductDetail() {
                     <h4 style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--color-primary)', margin: '0 0 1rem 0', minHeight: '2.5rem', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {p.title}
                     </h4>
-                    <Link 
+                    <Link
                       to={`/products/${p.category}/${p.id}`}
                       style={{
                         marginTop: 'auto',
@@ -869,7 +868,7 @@ export default function ProductDetail() {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '3rem' }}>
-              <Link 
+              <Link
                 to="/products"
                 style={{
                   backgroundColor: 'var(--color-primary)',
@@ -895,7 +894,7 @@ export default function ProductDetail() {
       {isModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
           <div style={{ backgroundColor: '#fff', width: '100%', maxWidth: '600px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', position: 'relative' }}>
-            <button 
+            <button
               onClick={() => setIsModalOpen(false)}
               style={{ position: 'absolute', top: '15px', right: '15px', border: 'none', background: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#64748b' }}
             >
@@ -911,9 +910,9 @@ export default function ProductDetail() {
               </p>
 
               {statusMsg && (
-                <div style={{ 
-                  padding: '0.85rem', 
-                  borderRadius: '4px', 
+                <div style={{
+                  padding: '0.85rem',
+                  borderRadius: '4px',
                   marginBottom: '1rem',
                   backgroundColor: statusType === 'success' ? '#def7ec' : '#fde8e8',
                   color: statusType === 'success' ? '#03543f' : '#9b1c1c',
@@ -953,16 +952,16 @@ export default function ProductDetail() {
                   <textarea rows="3" value={message} onChange={(e) => setMessage(e.target.value)} required style={{ width: '100%', padding: '0.5rem', border: '1px solid var(--color-border)', borderRadius: '4px', fontSize: '0.8rem', resize: 'vertical' }}></textarea>
                 </div>
 
-                <button 
-                  type="submit" 
-                  style={{ 
-                    width: '100%', 
-                    backgroundColor: 'var(--color-accent)', 
-                    color: '#fff', 
-                    border: 'none', 
-                    borderRadius: '4px', 
-                    padding: '0.75rem 0', 
-                    fontWeight: 800, 
+                <button
+                  type="submit"
+                  style={{
+                    width: '100%',
+                    backgroundColor: 'var(--color-accent)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '0.75rem 0',
+                    fontWeight: 800,
                     fontSize: '0.85rem',
                     cursor: 'pointer'
                   }}

@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { blogsApi } from '../utils/api';
 import { getBlogs, deleteBlog } from '../utils/storage';
 import EditableText from '../components/EditableText';
 
@@ -10,27 +9,9 @@ export default function Blog() {
   const [blogPosts, setBlogPosts] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const fetchBlogs = async () => {
-    try {
-      const data = await blogsApi.getAll();
-      if (Array.isArray(data) && data.length > 0) {
-        setBlogPosts(data);
-      } else {
-        // Fallback to local default blogs if backend has no blogs yet
-        const local = getBlogs();
-        setBlogPosts(local);
-      }
-    } catch (err) {
-      console.warn('Failed to fetch blogs from backend, using fallback:', err);
-      setBlogPosts(getBlogs());
-    } finally {
-      // done
-    }
-  };
-
   useEffect(() => {
-    fetchBlogs();
-
+    setBlogPosts(getBlogs());
+    
     const checkLogin = () => {
       setIsAdmin(sessionStorage.getItem('isAdminLoggedIn') === 'true');
     };
@@ -39,33 +20,17 @@ export default function Blog() {
     return () => window.removeEventListener('adminLoginStatusChange', checkLogin);
   }, []);
 
-  const handleInlineDeleteBlog = async (id, title) => {
+  const handleInlineDeleteBlog = (id, title) => {
     if (window.confirm(`Admin: Are you sure you want to delete the blog post "${title}"?`)) {
-      try {
-        await blogsApi.delete(id);
-      } catch (err) {
-        console.warn('Backend blog delete error:', err);
-      }
       deleteBlog(id);
-      await fetchBlogs();
+      setBlogPosts(getBlogs());
       alert('Blog post deleted.');
     }
   };
 
   // Filter Logic
   const filteredPosts = blogPosts.filter(p => {
-    const cat = (p.category || '').toLowerCase();
-    const af = activeFilter.toLowerCase();
-    const matchesCategory =
-      activeFilter === 'all' ||
-      cat === af ||
-      (af === 'tech' && (cat === 'technology' || cat === 'tech')) ||
-      (af === 'technology' && (cat === 'technology' || cat === 'tech')) ||
-      (af === 'ops' && (cat === 'operations' || cat === 'ops')) ||
-      (af === 'operations' && (cat === 'operations' || cat === 'ops')) ||
-      (af === 'green' && (cat === 'sustainability' || cat === 'green')) ||
-      (af === 'sustainability' && (cat === 'sustainability' || cat === 'green')) ||
-      (af === 'pharma' && (cat === 'pharma' || cat === 'medicine & pharma'));
+    const matchesCategory = activeFilter === 'all' || (p.category || '') === activeFilter;
     const matchesSearch = (p.title || '').toLowerCase().includes((searchText || '').toLowerCase().trim());
     return matchesCategory && matchesSearch;
   });
@@ -91,7 +56,7 @@ export default function Blog() {
            ========================================================================== */}
       <section className="section">
         <div className="container">
-
+          
           {/* Filter Bar */}
           <div className="shop-filter-bar" style={{ marginBottom: "3.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "2rem", flexWrap: "wrap", borderBottom: "1px solid var(--color-border)", paddingBottom: "2rem" }}>
             <div className="filter-tabs" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -102,7 +67,7 @@ export default function Blog() {
                 { label: 'Medicine & Pharma', value: 'pharma' },
                 { label: 'Tutorials', value: 'ops' }
               ].map(tab => (
-                <button
+                <button 
                   key={tab.value}
                   className={`btn btn-secondary filter-tab ${activeFilter === tab.value ? 'active' : ''}`}
                   onClick={() => setActiveFilter(tab.value)}
@@ -113,12 +78,12 @@ export default function Blog() {
               ))}
             </div>
             <div className="search-box" style={{ position: "relative", maxWidth: "320px", width: "100%" }}>
-              <input
-                type="text"
-                placeholder="Search blog title..."
+              <input 
+                type="text" 
+                placeholder="Search blog title..." 
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                style={{ width: "100%", padding: "0.65rem 1rem 0.65rem 2.5rem", border: "1px solid var(--color-border)", borderRadius: "4px", backgroundColor: "var(--color-bg-light)", fontSize: "0.85rem" }}
+                style={{ width: "100%", padding: "0.65rem 1rem 0.65rem 2.5rem", border: "1px solid var(--color-border)", borderRadius: "4px", backgroundColor: "var(--color-bg-light)", fontSize: "0.85rem" }} 
                 className="form-control"
               />
               <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-muted)" }}></i>

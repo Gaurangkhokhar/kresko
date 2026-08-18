@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-export default function ProductDetailRow({ product, categoryId, categoryName }) {
+export default function ProductDetailRow({ product, _categoryId, categoryName }) {
   const [activeView, setActiveView] = useState('main');
   const [selectedPack, setSelectedPack] = useState('');
 
@@ -15,7 +15,7 @@ export default function ProductDetailRow({ product, categoryId, categoryName }) 
   // Extract packaging options from specsTable
   const packOptsRaw = product.specsTable?.find(s => s.param.toLowerCase().includes('packaging'))?.value || '50 KG Drum, 200 KG Drum, 1000 KG (IBC)';
   const packOptions = packOptsRaw.split(',').map(o => o.trim());
-  
+
   // Set default selected pack if not set
   if (!selectedPack && packOptions.length > 0) {
     setSelectedPack(packOptions[0]);
@@ -36,7 +36,7 @@ export default function ProductDetailRow({ product, categoryId, categoryName }) 
   };
 
   return (
-    <div 
+    <div
       className="product-detail-row-container"
       style={{
         display: 'grid',
@@ -55,15 +55,15 @@ export default function ProductDetailRow({ product, categoryId, categoryName }) 
       <div>
         <div style={{ display: 'flex', border: '1px solid var(--color-border)', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#fff', height: '320px', position: 'relative' }}>
           {/* Certifications Badge Sidebar */}
-          <div 
-            style={{ 
-              width: '75px', 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              gap: '0.65rem', 
-              padding: '1.25rem 0.5rem', 
-              backgroundColor: '#f8fafc', 
+          <div
+            style={{
+              width: '75px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '0.65rem',
+              padding: '1.25rem 0.5rem',
+              backgroundColor: '#f8fafc',
               borderRight: '1px solid var(--color-border)',
               justifyContent: 'center'
             }}
@@ -72,7 +72,7 @@ export default function ProductDetailRow({ product, categoryId, categoryName }) 
               <img src="/images/kresko_logo.png" alt="Kresko Logo" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
               <span style={{ fontSize: '0.45rem', fontWeight: 950, color: 'var(--color-primary)', marginTop: '2px', letterSpacing: '0.5px' }}>KRESKO</span>
             </div>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', alignItems: 'center' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
                 <i className="fa-solid fa-circle-check" style={{ color: '#10b981', fontSize: '0.85rem' }}></i>
@@ -95,27 +95,27 @@ export default function ProductDetailRow({ product, categoryId, categoryName }) 
 
           {/* Main Visual Display */}
           <div style={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', backgroundColor: '#fff' }}>
-            <img 
-              src={mainImageUrl} 
-              alt={product.title} 
-              style={{ 
-                maxHeight: '260px', 
-                maxWidth: '100%', 
+            <img
+              src={mainImageUrl}
+              alt={product.title}
+              style={{
+                maxHeight: '260px',
+                maxWidth: '100%',
                 objectFit: 'contain',
                 transition: 'transform 0.3s ease'
-              }} 
+              }}
             />
             {product.tag && (
-              <span 
-                style={{ 
-                  position: 'absolute', 
-                  top: '12px', 
-                  right: '12px', 
-                  backgroundColor: 'var(--color-accent)', 
-                  color: '#fff', 
-                  fontSize: '0.62rem', 
-                  fontWeight: 800, 
-                  padding: '0.25rem 0.6rem', 
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  backgroundColor: 'var(--color-accent)',
+                  color: '#fff',
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  padding: '0.25rem 0.6rem',
                   borderRadius: '4px',
                   textTransform: 'uppercase',
                   letterSpacing: '0.3px'
@@ -176,19 +176,19 @@ export default function ProductDetailRow({ product, categoryId, categoryName }) 
           </p>
 
           {/* Swadesh-Style Product Specifications Card */}
-          <div 
-            style={{ 
-              backgroundColor: 'rgba(27, 42, 71, 0.02)', 
-              border: '1px solid rgba(27, 42, 71, 0.06)', 
-              borderRadius: '8px', 
-              padding: '1.25rem', 
-              marginBottom: '1.25rem' 
+          <div
+            style={{
+              backgroundColor: 'rgba(27, 42, 71, 0.02)',
+              border: '1px solid rgba(27, 42, 71, 0.06)',
+              borderRadius: '8px',
+              padding: '1.25rem',
+              marginBottom: '1.25rem'
             }}
           >
             <h4 style={{ fontSize: '0.78rem', fontWeight: 900, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 1rem 0', borderBottom: '1px solid rgba(27, 42, 71, 0.08)', paddingBottom: '0.4rem' }}>
               Product Specifications
             </h4>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '1rem' }}>
               {/* Column 1 */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -205,7 +205,7 @@ export default function ProductDetailRow({ product, categoryId, categoryName }) 
                   <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-primary)' }}>{getSpecValue('appearance')}</span>
                 </div>
               </div>
-              
+
               {/* Column 2 */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 <div>
@@ -256,11 +256,11 @@ export default function ProductDetailRow({ product, categoryId, categoryName }) 
 
         {/* Action Controls */}
         <div style={{ display: 'flex', gap: '1rem', marginTop: 'auto', borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
-          <Link 
+          <Link
             to={`/contact?product=${encodeURIComponent(product.title)}&pack=${encodeURIComponent(selectedPack)}`}
-            className="btn btn-primary" 
-            style={{ 
-              backgroundColor: 'var(--color-accent)', 
+            className="btn btn-primary"
+            style={{
+              backgroundColor: 'var(--color-accent)',
               borderColor: 'var(--color-accent)',
               borderRadius: '6px',
               padding: '0.7rem 1.75rem',
@@ -273,10 +273,10 @@ export default function ProductDetailRow({ product, categoryId, categoryName }) 
           >
             <i className="fa-solid fa-paper-plane"></i> Request Quote
           </Link>
-          <a 
+          <a
             href={`https://wa.me/919377998866?text=Hello%20Kresko%20Chemicals,%20I%20am%20interested%20in%20"${encodeURIComponent(product.title)}"%20with%20pack%20size%20"${encodeURIComponent(selectedPack)}".%20Please%20send%20commercial%20quote.`}
-            target="_blank" 
-            rel="noopener noreferrer" 
+            target="_blank"
+            rel="noopener noreferrer"
             className="btn btn-secondary"
             style={{
               borderColor: 'var(--color-border)',

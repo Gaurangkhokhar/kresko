@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { blogsApi } from '../utils/api';
 import { getBlogs } from '../utils/storage';
 
 export default function BlogPost() {
@@ -8,10 +9,26 @@ export default function BlogPost() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const blogs = getBlogs();
-    const foundBlog = blogs.find(b => b.id === id);
-    setArticle(foundBlog);
-    setLoading(false);
+    const fetchArticle = async () => {
+      try {
+        const blog = await blogsApi.getById(id);
+        if (blog && (blog.title || blog.content)) {
+          setArticle(blog);
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to fetch blog from backend, trying local fallback:', err);
+      }
+
+      // Fallback to local storage
+      const blogs = getBlogs();
+      const foundBlog = blogs.find(b => b.id === id || b._id === id);
+      setArticle(foundBlog || null);
+      setLoading(false);
+    };
+
+    fetchArticle();
   }, [id]);
 
   if (loading) {
@@ -59,8 +76,8 @@ export default function BlogPost() {
               <img src={article.image} alt={article.title} style={{ width: '100%', maxHeight: '420px', objectFit: 'cover', borderRadius: '4px', boxShadow: 'var(--shadow-md)' }} />
             </div>
             <div style={{ color: 'var(--color-text-main)', fontSize: '1.05rem', lineHeight: '1.8' }}>
-              {(Array.isArray(article.content) 
-                ? article.content 
+              {(Array.isArray(article.content)
+                ? article.content
                 : (typeof article.content === 'string' ? article.content.split('\n\n') : [])
               ).map((para, idx) => (
                 <p key={idx} style={{ marginBottom: '1.5rem' }}>{para}</p>

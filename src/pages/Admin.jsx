@@ -68,12 +68,12 @@ export default function Admin() {
   const [categories, setCategories] = useState({});
   const [selectedCatKey, setSelectedCatKey] = useState('');
   const [selectedSubKey, setSelectedSubKey] = useState('');
-  
+
   // Create Category fields
   const [newCatKey, setNewCatKey] = useState('');
   const [newCatName, setNewCatName] = useState('');
   const [newCatIcon, setNewCatIcon] = useState('/images/product_placeholder.jpg');
-  
+
   // Create Subcategory fields
   const [newSubKey, setNewSubKey] = useState('');
   const [newSubName, setNewSubName] = useState('');
@@ -95,7 +95,6 @@ export default function Admin() {
   // Load lists on mount
   useEffect(() => {
     setProducts(getProducts());
-    setBlogs(getBlogs());
     setEnquiries(getEnquiries());
     setSecurityData(getAdminSecurity());
     setReviews(getReviews());
@@ -103,23 +102,64 @@ export default function Admin() {
     setCatalogTitle(localStorage.getItem('kresko_catalog_title') || '');
     setCatalogPdf(localStorage.getItem('kresko_catalog_pdf') || '');
     setCatalogUrl(localStorage.getItem('kresko_catalog_url') || '');
-    setSavedCatalogs(getStoredCatalogs());
+
+    // 1) Load Blogs from backend (fallback to localStorage)
+    const loadBlogsFromBackend = async () => {
+      try {
+        const data = await blogsApi.getAll();
+        if (Array.isArray(data) && data.length > 0) {
+          setBlogs(data);
+          return;
+        }
+      } catch (err) {
+        console.warn('Admin: backend blogs fetch failed:', err);
+      }
+      setBlogs(getBlogs());
+    };
+    loadBlogsFromBackend();
+
+    // 2) Load Catalogs from backend (fallback to localStorage)
+    const loadCatalogsFromBackend = async () => {
+      try {
+        const data = await catalogApi.getAll();
+        if (Array.isArray(data) && data.length > 0) {
+          setSavedCatalogs(data);
+          return;
+        }
+      } catch (err) {
+        console.warn('Admin: backend catalogs fetch failed:', err);
+      }
+      setSavedCatalogs(getStoredCatalogs());
+    };
+    loadCatalogsFromBackend();
+
+    // 3) Load Hero Slides from backend (fallback to localStorage)
+    const loadHeroSlidesFromBackend = async () => {
+      try {
+        const data = await heroSlidesApi.getAll();
+        if (Array.isArray(data) && data.length > 0) {
+          setHeroSlides(data.sort((a, b) => (a.order || 0) - (b.order || 0)));
+          return;
+        }
+      } catch (err) {
+        console.warn('Admin: backend hero slides fetch failed:', err);
+      }
+      setHeroSlides(getHeroSlides());
+    };
+    loadHeroSlidesFromBackend();
 
     const reloadCats = () => {
       setCategories(getProductCategories());
     };
     window.addEventListener('categoriesUpdated', reloadCats);
-
     if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
       setIsLocked(false);
     }
-
         const editPayload = sessionStorage.getItem('editProductPayload');
     if (editPayload) {
       try {
         const payload = JSON.parse(editPayload);
         setActiveTab('manage-content');
-
         // Find product to pre-fill the inline editor on the Manage Content tab.
         const allProducts = getProducts();
         const p = allProducts.find(prod => prod.id === payload.id);
@@ -132,7 +172,6 @@ export default function Admin() {
       }
       sessionStorage.removeItem('editProductPayload'); // Clear after loading
     }
-
     return () => {
       window.removeEventListener('categoriesUpdated', reloadCats);
     };
@@ -281,7 +320,7 @@ export default function Admin() {
 
     saveAdminPassword(newPasswordInput);
     alert('Password reset successfully! You can now log in using your new password.');
-    
+
     // Reset state & redirect back to login
     setIsRecovering(false);
     setRecoverySuccess(false);
@@ -339,10 +378,20 @@ export default function Admin() {
   };
 
   // Delete Blog post trigger
-  const handleDeleteBlog = (id, title) => {
+  const handleDeleteBlog = async (id, title) => {
     if (window.confirm(`Are you sure you want to delete the blog post "${title}"?`)) {
+      try {
+        await blogsApi.delete(id);
+      } catch (err) {
+        console.warn('Backend blog delete error:', err.message || err);
+      }
       deleteBlog(id);
-      setBlogs(getBlogs()); // Reload state
+      try {
+        const fresh = await blogsApi.getAll();
+        setBlogs(fresh.length > 0 ? fresh : getBlogs());
+      } catch {
+        setBlogs(getBlogs());
+      }
       alert('Blog post deleted.');
     }
   };
@@ -461,7 +510,7 @@ export default function Admin() {
     }
 
     setProdSuccess(`Product concentrate "${prodTitle}" added successfully! Redirecting to Concentrates page...`);
-    
+
     // Reset fields
     setProdTitle('');
     setProdDesc('');
@@ -470,7 +519,7 @@ export default function Admin() {
     setProdDilution('1 + 5');
     setProdMinPack('30 Kg');
     setProdRateAfter('Rs. 24.83 / Litre');
-    
+
     setTimeout(() => {
       setProdSuccess('');
       navigate('/products');
@@ -527,7 +576,7 @@ export default function Admin() {
     }
 
     setBlogSuccess(`Blog post "${blogTitle}" uploaded successfully! Redirecting to Blog page...`);
-    
+
     // Reset fields
     setBlogTitle('');
     setBlogDesc('');
@@ -807,7 +856,7 @@ export default function Admin() {
     if (!newName || !newName.trim() || newName.trim() === currentName) {
       return;
     }
-    
+
     const updated = {
       ...categories,
       [key]: {
@@ -897,7 +946,7 @@ export default function Admin() {
       alert('Please fill out all product details');
       return;
     }
-    
+
     const productData = {
       id: manageProdId || `custom-${Date.now()}`,
       category: selectedCatKey,
@@ -916,7 +965,7 @@ export default function Admin() {
     saveProduct(productData);
     setProducts(getProducts()); // Reload products list
     alert(manageProdId ? 'Product updated successfully!' : 'Product added successfully!');
-    
+
     // Reset form
     setManageProdId('');
     setManageProdTitle('');
@@ -952,75 +1001,75 @@ export default function Admin() {
             <i className="fa-solid fa-shield-halved" style={{ color: 'var(--color-accent)', marginRight: '0.5rem' }}></i> Portal Panel
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <button 
+            <button
               className={`btn btn-secondary ${activeTab === 'overview' ? 'active' : ''}`}
               onClick={() => setActiveTab('overview')}
               style={{ width: '100%', textAlign: 'left', padding: '0.8rem 1rem', fontSize: '0.8rem' }}
             >
               <i className="fa-solid fa-chart-line" style={{ marginRight: '0.5rem' }}></i> Overview
             </button>
-            <button 
+            <button
               className={`btn btn-secondary ${activeTab === 'enquiries' ? 'active' : ''}`}
               onClick={() => setActiveTab('enquiries')}
               style={{ width: '100%', textAlign: 'left', padding: '0.8rem 1rem', fontSize: '0.8rem' }}
             >
               <i className="fa-solid fa-envelope-open-text" style={{ marginRight: '0.5rem' }}></i> Enquiries ({enquiries.length})
             </button>
-            <button 
+            <button
               className={`btn btn-secondary ${activeTab === 'manage-content' ? 'active' : ''}`}
               onClick={() => setActiveTab('manage-content')}
               style={{ width: '100%', textAlign: 'left', padding: '0.8rem 1rem', fontSize: '0.8rem' }}
             >
               <i className="fa-solid fa-list-check" style={{ marginRight: '0.5rem' }}></i> Manage Content
             </button>
-            <button 
+            <button
               className={`btn btn-secondary ${activeTab === 'manage-hero' ? 'active' : ''}`}
               onClick={() => setActiveTab('manage-hero')}
               style={{ width: '100%', textAlign: 'left', padding: '0.8rem 1rem', fontSize: '0.8rem' }}
             >
               <i className="fa-solid fa-image" style={{ marginRight: '0.5rem' }}></i> Home Content
             </button>
-            <button 
+            <button
               className={`btn btn-secondary ${activeTab === 'manage-categories' ? 'active' : ''}`}
               onClick={() => setActiveTab('manage-categories')}
               style={{ width: '100%', textAlign: 'left', padding: '0.8rem 1rem', fontSize: '0.8rem' }}
             >
               <i className="fa-solid fa-folder-tree" style={{ marginRight: '0.5rem' }}></i> Product Manager
             </button>
-            <button 
+            <button
               className={`btn btn-secondary ${activeTab === 'manage-reviews' ? 'active' : ''}`}
               onClick={() => setActiveTab('manage-reviews')}
               style={{ width: '100%', textAlign: 'left', padding: '0.8rem 1rem', fontSize: '0.8rem' }}
             >
               <i className="fa-solid fa-star" style={{ marginRight: '0.5rem' }}></i> Manage Reviews ({reviews.length})
             </button>
-            <button 
+            <button
               className={`btn btn-secondary ${activeTab === 'add-blog' ? 'active' : ''}`}
               onClick={() => setActiveTab('add-blog')}
               style={{ width: '100%', textAlign: 'left', padding: '0.8rem 1rem', fontSize: '0.8rem' }}
             >
               <i className="fa-solid fa-file-arrow-up" style={{ marginRight: '0.5rem' }}></i> Add Blog Post
             </button>
-            <button 
+            <button
               className={`btn btn-secondary ${activeTab === 'catalog' ? 'active' : ''}`}
               onClick={() => setActiveTab('catalog')}
               style={{ width: '100%', textAlign: 'left', padding: '0.8rem 1rem', fontSize: '0.8rem' }}
             >
               <i className="fa-solid fa-file-pdf" style={{ marginRight: '0.5rem' }}></i> Manage Catalog
             </button>
-            <button 
+            <button
               className={`btn btn-secondary ${activeTab === 'security' ? 'active' : ''}`}
               onClick={() => setActiveTab('security')}
               style={{ width: '100%', textAlign: 'left', padding: '0.8rem 1rem', fontSize: '0.8rem' }}
             >
               <i className="fa-solid fa-lock" style={{ marginRight: '0.5rem' }}></i> Security Settings
             </button>
-            <button 
+            <button
               className="btn btn-secondary"
-              onClick={() => { 
-                setIsLocked(true); 
-                setFailedAttempts(0); 
-                sessionStorage.removeItem('isAdminLoggedIn'); 
+              onClick={() => {
+                setIsLocked(true);
+                setFailedAttempts(0);
+                sessionStorage.removeItem('isAdminLoggedIn');
                 window.dispatchEvent(new Event('adminLoginStatusChange'));
               }}
               style={{ width: '100%', textAlign: 'left', padding: '0.8rem 1rem', fontSize: '0.8rem', marginTop: '2rem', borderColor: 'var(--color-accent)', color: 'var(--color-accent)' }}
@@ -1036,7 +1085,7 @@ export default function Admin() {
           {activeTab === 'overview' && (
             <div>
               <h2 style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-serif)', fontSize: '1.75rem', marginBottom: '2rem' }}>Dashboard Overview</h2>
-              
+
               {/* Counters Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '3.5rem' }} className="overview-stats-grid">
                 <div style={{ padding: '1.5rem', border: '1px solid var(--color-border)', borderRadius: '4px', textAlign: 'center', boxShadow: 'var(--shadow-sm)', backgroundColor: 'var(--color-bg-white)' }}>
@@ -1074,9 +1123,9 @@ export default function Admin() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                 <h2 style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-serif)', fontSize: '1.75rem' }}>Quote Requests Logs</h2>
-                <input 
-                  type="text" 
-                  placeholder="Filter name, email, company..." 
+                <input
+                  type="text"
+                  placeholder="Filter name, email, company..."
                   value={enquirySearch}
                   onChange={(e) => setEnquirySearch(e.target.value)}
                   style={{ maxWidth: '300px', padding: '0.5rem 1rem', fontSize: '0.85rem' }}
@@ -1103,15 +1152,15 @@ export default function Admin() {
                         <td style={{ padding: '1rem' }}>{enq.company || '-'}</td>
                         <td style={{ padding: '1rem', color: 'var(--color-accent)', fontWeight: 600 }}>{enq.machineType}</td>
                         <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
-                          <button 
-                            className="btn btn-secondary" 
+                          <button
+                            className="btn btn-secondary"
                             style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem' }}
                             onClick={() => setSelectedEnquiry(enq)}
                           >
                             View Specs
                           </button>
-                          <button 
-                            className="btn btn-secondary" 
+                          <button
+                            className="btn btn-secondary"
                             style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem', color: '#dc2626', borderColor: '#fca5a5' }}
                             onClick={() => handleDeleteEnquiry(enq.id || enq._id, enq.name)}
                           >
@@ -1354,8 +1403,8 @@ export default function Admin() {
                               >
                                 <i className="fa-solid fa-pen" style={{ marginRight: '0.3rem' }}></i> Edit
                               </button>
-                              <button 
-                                className="btn btn-secondary" 
+                              <button
+                                className="btn btn-secondary"
                                 style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem', color: '#dc2626', borderColor: '#fca5a5' }}
                                 onClick={() => handleDeleteProduct(p.id, p.title)}
                               >
@@ -1390,8 +1439,8 @@ export default function Admin() {
                           <td style={{ padding: '0.85rem', fontWeight: 600 }}>{b.title}</td>
                           <td style={{ padding: '0.85rem', textTransform: 'uppercase', fontSize: '0.75rem' }}>{b.category}</td>
                           <td style={{ padding: '0.85rem' }}>
-                            <button 
-                              className="btn btn-secondary" 
+                            <button
+                              className="btn btn-secondary"
                               style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem', color: '#dc2626', borderColor: '#fca5a5' }}
                               onClick={() => handleDeleteBlog(b.id, b.title)}
                             >
@@ -1411,26 +1460,26 @@ export default function Admin() {
           {activeTab === 'manage-categories' && (
             <div>
               <h2 style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-serif)', fontSize: '1.75rem', marginBottom: '2rem' }}>Product Manager & Category Hierarchy</h2>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '3rem' }} className="manage-cats-grid">
-                
+
                 {/* 1. Category Section */}
                 <div style={{ padding: '2rem', border: '1px solid var(--color-border)', borderRadius: '6px', backgroundColor: 'var(--color-bg-white)', boxShadow: 'var(--shadow-sm)' }}>
                   <h4 style={{ color: 'var(--color-primary)', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '2px solid var(--color-accent)', paddingBottom: '0.5rem' }}>
                     <i className="fa-solid fa-folder" style={{ color: 'var(--color-accent)', marginRight: '0.5rem' }}></i> Categories
                   </h4>
-                  
+
                   {/* Category select / delete list */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', maxHeight: '250px', overflowY: 'auto', marginBottom: '1.5rem', paddingRight: '0.5rem' }}>
                     {Object.entries(categories).map(([key, cat]) => (
-                      <div 
-                        key={key} 
-                        style={{ 
-                          display: 'flex', 
-                          justifyContent: 'space-between', 
-                          alignItems: 'center', 
-                          padding: '0.75rem 1rem', 
-                          border: `1px solid ${selectedCatKey === key ? 'var(--color-accent)' : 'var(--color-border)'}`, 
+                      <div
+                        key={key}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '0.75rem 1rem',
+                          border: `1px solid ${selectedCatKey === key ? 'var(--color-accent)' : 'var(--color-border)'}`,
                           borderRadius: '4px',
                           cursor: 'pointer',
                           backgroundColor: selectedCatKey === key ? 'var(--color-bg-light)' : 'transparent'
@@ -1450,8 +1499,8 @@ export default function Admin() {
                           {cat.name} <code style={{ fontSize: '0.75rem', opacity: 0.6 }}>({key})</code>
                         </span>
                         <div style={{ display: 'flex', gap: '0.35rem' }}>
-                          <button 
-                            className="btn btn-secondary" 
+                          <button
+                            className="btn btn-secondary"
                             style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem', color: 'var(--color-primary)', borderColor: 'var(--color-border)' }}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1460,8 +1509,8 @@ export default function Admin() {
                           >
                             Edit
                           </button>
-                          <button 
-                            className="btn btn-secondary" 
+                          <button
+                            className="btn btn-secondary"
                             style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem', color: '#dc2626', borderColor: '#fca5a5' }}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1480,25 +1529,25 @@ export default function Admin() {
                     <h5 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--color-primary)' }}>Create New Category</h5>
                     <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                       <label className="form-label">Category Name *</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        placeholder="e.g. Laundry Care" 
-                        value={newCatName} 
-                        onChange={(e) => setNewCatName(e.target.value)} 
-                        required 
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. Laundry Care"
+                        value={newCatName}
+                        onChange={(e) => setNewCatName(e.target.value)}
+                        required
                       />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
                       <div className="form-group" style={{ margin: 0 }}>
                         <label className="form-label">Unique Key *</label>
-                        <input 
-                          type="text" 
-                          className="form-control" 
-                          placeholder="e.g. laundry-care" 
-                          value={newCatKey} 
-                          onChange={(e) => setNewCatKey(e.target.value)} 
-                          required 
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="e.g. laundry-care"
+                          value={newCatKey}
+                          onChange={(e) => setNewCatKey(e.target.value)}
+                          required
                         />
                       </div>
                       <div className="form-group" style={{ margin: 0 }}>
@@ -1564,18 +1613,18 @@ export default function Admin() {
                       <div style={{ marginBottom: '1rem', fontSize: '0.88rem' }}>
                         Active Category: <strong style={{ color: 'var(--color-primary)' }}>{categories[selectedCatKey]?.name}</strong>
                       </div>
-                      
+
                       {/* Subcategories list */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', maxHeight: '200px', overflowY: 'auto', marginBottom: '1.5rem', paddingRight: '0.5rem' }}>
                         {Object.entries(categories[selectedCatKey]?.subcategories || {}).map(([subKey, subName]) => (
-                          <div 
-                            key={subKey} 
-                            style={{ 
-                              display: 'flex', 
-                              justifyContent: 'space-between', 
-                              alignItems: 'center', 
-                              padding: '0.6rem 0.8rem', 
-                              border: `1px solid ${selectedSubKey === subKey ? 'var(--color-accent)' : 'var(--color-border)'}`, 
+                          <div
+                            key={subKey}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '0.6rem 0.8rem',
+                              border: `1px solid ${selectedSubKey === subKey ? 'var(--color-accent)' : 'var(--color-border)'}`,
                               borderRadius: '4px',
                               cursor: 'pointer',
                               backgroundColor: selectedSubKey === subKey ? 'var(--color-bg-light)' : 'transparent'
@@ -1588,8 +1637,8 @@ export default function Admin() {
                             <span style={{ fontWeight: selectedSubKey === subKey ? 700 : 500, color: 'var(--color-primary)', fontSize: '0.82rem' }}>
                               {subName} <code style={{ fontSize: '0.75rem', opacity: 0.6 }}>({subKey})</code>
                             </span>
-                            <button 
-                              className="btn btn-secondary" 
+                            <button
+                              className="btn btn-secondary"
                               style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem', color: '#dc2626', borderColor: '#fca5a5' }}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -1610,24 +1659,24 @@ export default function Admin() {
                         <h5 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--color-primary)' }}>Add Subcategory to {categories[selectedCatKey]?.name}</h5>
                         <div className="form-group" style={{ marginBottom: '0.75rem' }}>
                           <label className="form-label">Subcategory Name *</label>
-                          <input 
-                            type="text" 
-                            className="form-control" 
-                            placeholder="e.g. Fabric Wash 6x" 
-                            value={newSubName} 
-                            onChange={(e) => setNewSubName(e.target.value)} 
-                            required 
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="e.g. Fabric Wash 6x"
+                            value={newSubName}
+                            onChange={(e) => setNewSubName(e.target.value)}
+                            required
                           />
                         </div>
                         <div className="form-group" style={{ marginBottom: '1rem' }}>
                           <label className="form-label">Unique Key *</label>
-                          <input 
-                            type="text" 
-                            className="form-control" 
-                            placeholder="e.g. fabric-wash-6x" 
-                            value={newSubKey} 
-                            onChange={(e) => setNewSubKey(e.target.value)} 
-                            required 
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="e.g. fabric-wash-6x"
+                            value={newSubKey}
+                            onChange={(e) => setNewSubKey(e.target.value)}
+                            required
                           />
                         </div>
                         <button type="submit" className="btn btn-primary" style={{ width: '100%', fontSize: '0.8rem', padding: '0.5rem 0' }}>Add Subcategory</button>
@@ -1642,7 +1691,7 @@ export default function Admin() {
               {selectedCatKey && selectedSubKey && (
                 <div style={{ padding: '2.5rem', border: '1px solid var(--color-border)', borderRadius: '6px', backgroundColor: 'var(--color-bg-white)', boxShadow: 'var(--shadow-sm)' }}>
                   <h4 style={{ color: 'var(--color-primary)', fontWeight: 800, marginBottom: '1.5rem', borderBottom: '2px solid var(--color-accent)', paddingBottom: '0.5rem' }}>
-                    <i className="fa-solid fa-flask" style={{ color: 'var(--color-accent)', marginRight: '0.5rem' }}></i> 
+                    <i className="fa-solid fa-flask" style={{ color: 'var(--color-accent)', marginRight: '0.5rem' }}></i>
                     Manage Products under "{categories[selectedCatKey]?.subcategories[selectedSubKey]}"
                   </h4>
 
@@ -1674,8 +1723,8 @@ export default function Admin() {
                                 <td style={{ padding: '0.85rem', color: 'var(--color-accent)', fontWeight: 600 }}>{p.price}</td>
                                 <td style={{ padding: '0.85rem' }}>{p.dilution}</td>
                                 <td style={{ padding: '0.85rem', display: 'flex', gap: '0.5rem' }}>
-                                  <button 
-                                    className="btn btn-secondary" 
+                                  <button
+                                    className="btn btn-secondary"
                                     style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem' }}
                                     onClick={() => {
                                       setManageProdId(p.id);
@@ -1691,8 +1740,8 @@ export default function Admin() {
                                   >
                                     <i className="fa-solid fa-pen-to-square"></i> Edit
                                   </button>
-                                  <button 
-                                    className="btn btn-secondary" 
+                                  <button
+                                    className="btn btn-secondary"
                                     style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem', color: '#dc2626', borderColor: '#fca5a5' }}
                                     onClick={() => {
                                       handleDeleteProduct(p.id, p.title);
@@ -1725,24 +1774,24 @@ export default function Admin() {
                     <div className="form-row">
                       <div className="form-group">
                         <label className="form-label">Product Name *</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           className="form-control"
                           placeholder="e.g. Toilet Cleaner Concentrate 6X (Blue)"
                           value={manageProdTitle}
                           onChange={(e) => setManageProdTitle(e.target.value)}
-                          required 
+                          required
                         />
                       </div>
                       <div className="form-group">
                         <label className="form-label">Price / Pack Cost *</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           className="form-control"
                           placeholder="e.g. Rs. 180 / Kg"
                           value={manageProdPrice}
                           onChange={(e) => setManageProdPrice(e.target.value)}
-                          required 
+                          required
                         />
                       </div>
                     </div>
@@ -1750,8 +1799,8 @@ export default function Admin() {
                     <div className="form-row">
                       <div className="form-group">
                         <label className="form-label">Card Badge / Ribbon Tag</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           className="form-control"
                           placeholder="e.g. Popular, Eco Friendly, New"
                           value={manageProdTag}
@@ -1760,13 +1809,13 @@ export default function Admin() {
                       </div>
                       <div className="form-group">
                         <label className="form-label">Recommended Dilution *</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           className="form-control"
                           placeholder="e.g. 1 + 5"
                           value={manageProdDilution}
                           onChange={(e) => setManageProdDilution(e.target.value)}
-                          required 
+                          required
                         />
                       </div>
                     </div>
@@ -1774,19 +1823,19 @@ export default function Admin() {
                     <div className="form-row">
                       <div className="form-group">
                         <label className="form-label">Minimum Pack Size *</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           className="form-control"
                           placeholder="e.g. 30 Kg"
                           value={manageProdMinPack}
                           onChange={(e) => setManageProdMinPack(e.target.value)}
-                          required 
+                          required
                         />
                       </div>
                       <div className="form-group">
                         <label className="form-label">Diluted Rate After Dilution</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           className="form-control"
                           placeholder="e.g. Rs. 30.00 / Litre"
                           value={manageProdRateAfter}
@@ -1800,9 +1849,9 @@ export default function Admin() {
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginTop: '0.5rem' }} className="manage-images-grid">
                         <div>
                           <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: '0.25rem' }}>Image 1 (Primary)</label>
-                          <input 
-                            type="text" 
-                            className="form-control" 
+                          <input
+                            type="text"
+                            className="form-control"
                             placeholder="e.g. /images/img1.jpg"
                             value={manageProdImages[0] || ''}
                             onChange={(e) => {
@@ -1814,9 +1863,9 @@ export default function Admin() {
                         </div>
                         <div>
                           <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: '0.25rem' }}>Image 2</label>
-                          <input 
-                            type="text" 
-                            className="form-control" 
+                          <input
+                            type="text"
+                            className="form-control"
                             placeholder="e.g. /images/img2.jpg"
                             value={manageProdImages[1] || ''}
                             onChange={(e) => {
@@ -1828,9 +1877,9 @@ export default function Admin() {
                         </div>
                         <div>
                           <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: '0.25rem' }}>Image 3</label>
-                          <input 
-                            type="text" 
-                            className="form-control" 
+                          <input
+                            type="text"
+                            className="form-control"
                             placeholder="e.g. /images/img3.jpg"
                             value={manageProdImages[2] || ''}
                             onChange={(e) => {
@@ -1842,9 +1891,9 @@ export default function Admin() {
                         </div>
                         <div>
                           <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: '0.25rem' }}>Image 4</label>
-                          <input 
-                            type="text" 
-                            className="form-control" 
+                          <input
+                            type="text"
+                            className="form-control"
                             placeholder="e.g. /images/img4.jpg"
                             value={manageProdImages[3] || ''}
                             onChange={(e) => {
@@ -1859,8 +1908,8 @@ export default function Admin() {
 
                     <div className="form-group">
                       <label className="form-label">Detailed Product Description *</label>
-                      <textarea 
-                        rows="4" 
+                      <textarea
+                        rows="4"
                         className="form-control"
                         placeholder="Describe the application protocols, surfactant percentage, raw materials compatibility, etc."
                         value={manageProdDesc}
@@ -1874,8 +1923,8 @@ export default function Admin() {
                         {manageProdId ? 'Save / Update Product' : 'Add Product to Catalog'}
                       </button>
                       {manageProdId && (
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           className="btn btn-secondary"
                           onClick={() => {
                             setManageProdId('');
@@ -1903,23 +1952,23 @@ export default function Admin() {
           {activeTab === 'add-product' && (
             <div className="quote-form-container" style={{ padding: '2.5rem', backgroundColor: 'var(--color-bg-light)' }}>
               <h3 style={{ marginBottom: '1.5rem' }}>Add New Product to Catalog</h3>
-              
+
               <form onSubmit={handleProductSubmit}>
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Product Name *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="form-control"
                       placeholder="e.g. Hand Wash Concentrate 6X"
                       value={prodTitle}
                       onChange={(e) => setProdTitle(e.target.value)}
-                      required 
+                      required
                     />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Category *</label>
-                    <select 
+                    <select
                       className="form-control"
                       value={prodCategory}
                       onChange={(e) => setProdCategory(e.target.value)}
@@ -1944,19 +1993,19 @@ export default function Admin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Base Concentrate Price *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="form-control"
                       placeholder="e.g. Rs. 170 / Kg"
                       value={prodPrice}
                       onChange={(e) => setProdPrice(e.target.value)}
-                      required 
+                      required
                     />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Card Ribbon Tag</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="form-control"
                       placeholder="e.g. Liquid, Powder, Concentrated"
                       value={prodTag}
@@ -1968,24 +2017,24 @@ export default function Admin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Dilution Formula *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="form-control"
                       placeholder="e.g. 1 + 5 or RTU"
                       value={prodDilution}
                       onChange={(e) => setProdDilution(e.target.value)}
-                      required 
+                      required
                     />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Minimum Packing Order (MOQ) *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="form-control"
                       placeholder="e.g. 30 Kg, 100 Pcs"
                       value={prodMinPack}
                       onChange={(e) => setProdMinPack(e.target.value)}
-                      required 
+                      required
                     />
                   </div>
                 </div>
@@ -1993,29 +2042,29 @@ export default function Admin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Diluted Cost Per Litre *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="form-control"
                       placeholder="e.g. Rs. 24.83 / Litre or RTU"
                       value={prodRateAfter}
                       onChange={(e) => setProdRateAfter(e.target.value)}
-                      required 
+                      required
                     />
                   </div>
                   <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
                     <label className="form-label">Product Images (Upload Multiple / Add URLs)</label>
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        placeholder="e.g. /images/my-product.jpg" 
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="e.g. /images/my-product.jpg"
                         value={manualImageUrl}
                         onChange={(e) => setManualImageUrl(e.target.value)}
                         style={{ flexGrow: 1 }}
                       />
-                      <button 
-                        type="button" 
-                        className="btn btn-secondary" 
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
                         onClick={() => {
                           if (manualImageUrl.trim() !== '') {
                             setProdImages(prev => [...prev, manualImageUrl.trim()]);
@@ -2026,12 +2075,12 @@ export default function Admin() {
                       >
                         Add URL
                       </button>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        id="product-image-upload" 
-                        multiple 
-                        style={{ display: 'none' }} 
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id="product-image-upload"
+                        multiple
+                        style={{ display: 'none' }}
                         onChange={(e) => {
                           const files = Array.from(e.target.files || []);
                           files.forEach(file => {
@@ -2044,9 +2093,9 @@ export default function Admin() {
                           e.target.value = ''; // Reset uploader input
                         }}
                       />
-                      <label 
-                        htmlFor="product-image-upload" 
-                        className="btn btn-secondary" 
+                      <label
+                        htmlFor="product-image-upload"
+                        className="btn btn-secondary"
                         style={{ padding: '0.85rem 1rem', margin: 0, cursor: 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem' }}
                       >
                         <i className="fa-solid fa-images" style={{ marginRight: '0.35rem' }}></i> Upload Files
@@ -2057,15 +2106,15 @@ export default function Admin() {
                     {prodImages.length > 0 && (
                       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.5rem', padding: '0.5rem', backgroundColor: 'var(--color-bg-white)', borderRadius: '4px', border: '1px solid var(--color-border)' }}>
                         {prodImages.map((img, idx) => (
-                          <div 
-                            key={idx} 
-                            style={{ 
-                              width: '60px', 
-                              height: '60px', 
-                              position: 'relative', 
-                              border: '1px solid var(--color-border)', 
-                              borderRadius: '4px', 
-                              padding: '2px', 
+                          <div
+                            key={idx}
+                            style={{
+                              width: '60px',
+                              height: '60px',
+                              position: 'relative',
+                              border: '1px solid var(--color-border)',
+                              borderRadius: '4px',
+                              padding: '2px',
                               backgroundColor: '#fff',
                               display: 'flex',
                               alignItems: 'center',
@@ -2073,25 +2122,25 @@ export default function Admin() {
                             }}
                           >
                             <ProductImage category={prodCategory} title={prodTitle || 'Sample'} image={img} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                            <button 
-                              type="button" 
+                            <button
+                              type="button"
                               onClick={() => setProdImages(prev => prev.filter((_, i) => i !== idx))}
-                              style={{ 
-                                position: 'absolute', 
-                                top: '-6px', 
-                                right: '-6px', 
-                                width: '16px', 
-                                height: '16px', 
-                                borderRadius: '50%', 
-                                backgroundColor: 'var(--color-accent)', 
-                                color: '#fff', 
-                                border: 'none', 
-                                fontSize: '8px', 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center', 
+                              style={{
+                                position: 'absolute',
+                                top: '-6px',
+                                right: '-6px',
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '50%',
+                                backgroundColor: 'var(--color-accent)',
+                                color: '#fff',
+                                border: 'none',
+                                fontSize: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                                 cursor: 'pointer',
-                                fontWeight: 'bold' 
+                                fontWeight: 'bold'
                               }}
                               aria-label="Remove Image"
                             >
@@ -2116,7 +2165,7 @@ export default function Admin() {
 
                 <div className="form-group">
                   <label className="form-label">Short Description *</label>
-                  <textarea 
+                  <textarea
                     className="form-control"
                     placeholder="Describe product formulation advantages, active ingredients, and washing usage..."
                     value={prodDesc}
@@ -2147,18 +2196,18 @@ export default function Admin() {
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Article Title *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="form-control"
                       placeholder="e.g. Future of Automated Heat Sealing"
                       value={blogTitle}
                       onChange={(e) => setBlogTitle(e.target.value)}
-                      required 
+                      required
                     />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Category *</label>
-                    <select 
+                    <select
                       className="form-control"
                       value={blogCategory}
                       onChange={(e) => setBlogCategory(e.target.value)}
@@ -2172,19 +2221,19 @@ export default function Admin() {
 
                 <div className="form-group">
                   <label className="form-label">Brief Summary / Card description *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className="form-control"
                     placeholder="Short 1-sentence teaser to display on index list..."
                     value={blogDesc}
                     onChange={(e) => setBlogDesc(e.target.value)}
-                    required 
+                    required
                   />
                 </div>
 
                 <div className="form-group">
                   <label className="form-label">Blog Content Paragraphs (Press enter to separate paragraphs) *</label>
-                  <textarea 
+                  <textarea
                     className="form-control"
                     placeholder="Write full article here. Use hit enter key to separate main paragraphs..."
                     value={blogContent}
@@ -2295,11 +2344,11 @@ export default function Admin() {
                 <div className="form-group">
                   <label className="form-label">Catalog File (Upload PDF)</label>
                   <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginBottom: '1.5rem' }}>
-                    <input 
-                      type="file" 
-                      accept="application/pdf" 
-                      id="catalog-pdf-upload" 
-                      style={{ display: 'none' }} 
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      id="catalog-pdf-upload"
+                      style={{ display: 'none' }}
                       onChange={(e) => {
                         const file = e.target.files[0];
                         if (file) {
@@ -2316,14 +2365,14 @@ export default function Admin() {
                         }
                       }}
                     />
-                    <label 
-                      htmlFor="catalog-pdf-upload" 
-                      className="btn btn-secondary" 
+                    <label
+                      htmlFor="catalog-pdf-upload"
+                      className="btn btn-secondary"
                       style={{ margin: 0, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', textTransform: 'none' }}
                     >
                       <i className="fa-solid fa-file-arrow-up"></i> Upload PDF Document
                     </label>
-                    
+
                     {catalogPdf ? (
                       <span style={{ fontSize: '0.85rem', color: '#16a34a', fontWeight: 'bold' }}>
                         <i className="fa-solid fa-circle-check"></i> PDF Loaded (Base64)
@@ -2338,8 +2387,8 @@ export default function Admin() {
 
                 <div className="form-group" style={{ marginBottom: '2rem' }}>
                   <label className="form-label">Or Custom PDF Link / Local Path</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className="form-control"
                     placeholder="e.g. /kresko_catalog.pdf or https://example.com/catalog.pdf"
                     value={catalogUrl}
@@ -2354,12 +2403,12 @@ export default function Admin() {
                   <button type="submit" className="btn btn-primary" style={{ fontWeight: '700' }}>
                     Add Catalog to Resources
                   </button>
-                  
+
                   {(catalogPdf || catalogUrl) && (
-                    <button 
-                      type="button" 
-                      className="btn btn-secondary" 
-                      onClick={handleClearCatalog} 
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={handleClearCatalog}
                       style={{ color: '#dc2626', borderColor: '#fca5a5', fontWeight: '700' }}
                     >
                       Clear/Delete Catalog
@@ -2412,43 +2461,43 @@ export default function Admin() {
           {/* SECURITY & SETTINGS TAB */}
           {activeTab === 'security' && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '3rem' }}>
-              
+
               {/* Form 1: Change password */}
               <div className="quote-form-container" style={{ padding: '2.5rem', backgroundColor: 'var(--color-bg-light)' }}>
                 <h3 style={{ marginBottom: '1.5rem' }}><i className="fa-solid fa-key" style={{ marginRight: '0.5rem', color: 'var(--color-accent)' }}></i> Change Credentials Password</h3>
                 <form onSubmit={handleChangePassword}>
                   <div className="form-group">
                     <label className="form-label">Current Password *</label>
-                    <input 
-                      type="password" 
+                    <input
+                      type="password"
                       className="form-control"
                       placeholder="Enter current password..."
                       value={currentPwd}
                       onChange={(e) => setCurrentPwd(e.target.value)}
-                      required 
+                      required
                     />
                   </div>
                   <div className="form-row">
                     <div className="form-group">
                       <label className="form-label">New Password *</label>
-                      <input 
-                        type="password" 
+                      <input
+                        type="password"
                         className="form-control"
                         placeholder="Min 6 characters..."
                         value={changePwdNew}
                         onChange={(e) => setChangePwdNew(e.target.value)}
-                        required 
+                        required
                       />
                     </div>
                     <div className="form-group">
                       <label className="form-label">Confirm New Password *</label>
-                      <input 
-                        type="password" 
+                      <input
+                        type="password"
                         className="form-control"
                         placeholder="Re-type new password..."
                         value={changePwdConfirm}
                         onChange={(e) => setChangePwdConfirm(e.target.value)}
-                        required 
+                        required
                       />
                     </div>
                   </div>
@@ -2477,24 +2526,24 @@ export default function Admin() {
                 <form onSubmit={handleChangeSecurity}>
                   <div className="form-group">
                     <label className="form-label">Security Question *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="form-control"
                       placeholder="e.g. What is the name of our factory brand?"
                       value={changeQuestion}
                       onChange={(e) => setChangeQuestion(e.target.value)}
-                      required 
+                      required
                     />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Recovery Answer (Case-insensitive) *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       className="form-control"
                       placeholder="e.g. Kresko"
                       value={changeAnswer}
                       onChange={(e) => setChangeAnswer(e.target.value)}
-                      required 
+                      required
                     />
                   </div>
 
@@ -2541,8 +2590,8 @@ export default function Admin() {
                           </span>
                         </td>
                         <td style={{ padding: '1rem' }}>
-                          <button 
-                            className="btn btn-secondary" 
+                          <button
+                            className="btn btn-secondary"
                             style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem', color: '#dc2626', borderColor: '#fca5a5' }}
                             onClick={() => handleDeleteReview(rev.id)}
                           >
@@ -2576,7 +2625,7 @@ export default function Admin() {
               <div className="modal-body">
                 <span style={{ fontSize: '0.8rem', color: 'var(--color-accent)', fontWeight: 700 }}>Logged: {selectedEnquiry.date}</span>
                 <h3 style={{ fontSize: '1.6rem', marginTop: '0.2rem', marginBottom: '1.5rem' }}>Quote Request Details</h3>
-                
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
                   <div>
                     <strong>Submitter Name:</strong> {selectedEnquiry.name}
@@ -2600,8 +2649,8 @@ export default function Admin() {
                   <p style={{ marginTop: '0.5rem', whiteSpace: 'pre-wrap', color: 'var(--color-text-muted)', lineHeight: '1.6' }}>{selectedEnquiry.message}</p>
                 </div>
 
-                <button 
-                  className="btn btn-secondary" 
+                <button
+                  className="btn btn-secondary"
                   style={{ marginTop: '2rem' }}
                   onClick={() => setSelectedEnquiry(null)}
                 >
@@ -2623,29 +2672,29 @@ export default function Admin() {
       <div className="container" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="quote-form-container" style={{ maxWidth: '450px', width: '100%', textAlign: 'center' }}>
           <i className="fa-solid fa-user-shield" style={{ fontSize: '3rem', color: 'var(--color-accent)', marginBottom: '1rem' }}></i>
-          
+
           {!recoverySuccess ? (
             // Step 1: Answer Question
             <>
               <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-primary)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>Security Verification</h2>
               <p style={{ marginBottom: '2rem', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Provide the correct answer to recover your password details.</p>
-              
+
               <form onSubmit={handleRecoverySubmit}>
                 <div className="form-group" style={{ textAlign: 'left' }}>
                   <label className="form-label" style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
                     {securityData.question || 'What is our company brand name?'}
                   </label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     className="form-control"
                     placeholder="Enter answer..."
                     value={recoveryAnswer}
                     onChange={(e) => setRecoveryAnswer(e.target.value)}
                     style={{ textAlign: 'center' }}
-                    required 
+                    required
                   />
                 </div>
-                
+
                 <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
                   Verify Answer
                 </button>
@@ -2657,9 +2706,9 @@ export default function Admin() {
                 )}
 
                 <div style={{ marginTop: '1.5rem' }}>
-                  <button 
-                    type="button" 
-                    className="btn btn-secondary" 
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
                     style={{ fontSize: '0.7rem', padding: '0.5rem 1rem' }}
                     onClick={() => { setIsRecovering(false); setRecoveryError(''); setRecoveryAnswer(''); }}
                   >
@@ -2673,33 +2722,33 @@ export default function Admin() {
             <>
               <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-primary)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>Reset Password</h2>
               <p style={{ marginBottom: '2rem', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Verification successful. Set your new admin credentials password.</p>
-              
+
               <form onSubmit={handleResetPasswordSubmit}>
                 <div className="form-group">
                   <label className="form-label">New Password *</label>
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     className="form-control"
                     placeholder="Min 6 characters..."
                     value={newPasswordInput}
                     onChange={(e) => setNewPasswordInput(e.target.value)}
                     style={{ textAlign: 'center' }}
-                    required 
+                    required
                   />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Confirm New Password *</label>
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     className="form-control"
                     placeholder="Confirm new password..."
                     value={newPasswordConfirm}
                     onChange={(e) => setNewPasswordConfirm(e.target.value)}
                     style={{ textAlign: 'center' }}
-                    required 
+                    required
                   />
                 </div>
-                
+
                 <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem' }}>
                   Save New Password
                 </button>
@@ -2729,24 +2778,24 @@ export default function Admin() {
           <i className="fa-solid fa-lock" style={{ fontSize: '3rem', color: 'var(--color-accent)', marginBottom: '1rem' }}></i>
           <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--color-primary)', fontSize: '1.75rem', marginBottom: '0.5rem' }}>Admin Access Only</h2>
           <p style={{ marginBottom: '2rem' }}>Please enter password to unlock the dashboard logs and uploader tools.</p>
-          
+
           <form onSubmit={handleLoginSubmit}>
             <div className="form-group">
-              <input 
-                type="password" 
+              <input
+                type="password"
                 className="form-control"
                 placeholder={isLockedOut ? "Lockout active..." : "Enter password..."}
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 style={{ textAlign: 'center' }}
                 disabled={isLockedOut}
-                required 
+                required
               />
             </div>
-            
-            <button 
-              type="submit" 
-              className="btn btn-primary" 
+
+            <button
+              type="submit"
+              className="btn btn-primary"
               style={{ width: '100%', marginTop: '0.5rem' }}
               disabled={isLockedOut}
             >
@@ -2761,7 +2810,7 @@ export default function Admin() {
 
             {!isLockedOut && (
               <div style={{ marginTop: '1.5rem' }}>
-                <button 
+                <button
                   type="button"
                   style={{ background: 'none', border: 'none', color: 'var(--color-accent)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
                   onClick={() => { setIsRecovering(true); setAuthError(''); setPasswordInput(''); }}

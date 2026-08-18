@@ -95,7 +95,7 @@ setIsSubmitting(true);
       setCompany('');
       setProductInterest('General Cleaning Concentrate Enquiry');
       setMessage('');
-    } catch (err) {
+    } catch (_err) {
       setStatusType('success');
       setStatusMsg(`Thank you, ${name}! Your inquiry for "${productInterest}" has been sent.`);
       setName('');
@@ -150,7 +150,7 @@ setIsSubmitting(true);
       setDistCompany('');
       setDistState('');
       setDistMessage('');
-    } catch (err) {
+    } catch (_err) {
       setStatusType('success');
       setStatusMsg(`Thank you, ${distName}! Your dealership request for "${distState}" has been recorded.`);
       setDistName('');
@@ -204,7 +204,7 @@ setIsSubmitting(true);
       setOemPhone('');
       setOemCompany('');
       setOemFormulation('');
-    } catch (err) {
+    } catch (_err) {
       setStatusType('success');
       setStatusMsg(`Thank you, ${oemName}! Your private label request has been sent.`);
       setOemName('');
@@ -256,7 +256,7 @@ setIsSubmitting(true);
       setCareerEmail('');
       setCareerPhone('');
       setCareerMessage('');
-    } catch (err) {
+    } catch (_err) {
       setStatusType('success');
       setStatusMsg(`Thank you, ${careerName}! Your application for the position of "${careerPosition}" has been received.`);
       setCareerName('');
@@ -287,7 +287,7 @@ setIsSubmitting(true);
             <p style={{ color: "var(--color-text-muted)", marginBottom: "2rem" }}>
               Have questions about dilution ratios, custom blending capacities, bulk pricing, or private labels? Reach out directly or complete the form.
             </p>
-            
+
             <div className="contact-detail-list" style={{ marginBottom: '2.5rem' }}>
               <div className="contact-detail-item">
                 <div className="contact-icon-box">
@@ -355,33 +355,33 @@ setIsSubmitting(true);
           <div className="quote-form-container" style={{ border: '1px solid var(--color-border)', borderRadius: '8px', boxShadow: 'var(--shadow-md)', padding: '2rem' }}>
             {/* Dynamic Tab Headers */}
             <div className="form-tabs" style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', flexWrap: 'wrap', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
-              <button 
+              <button
                 type="button"
-                className={`btn ${activeTab === 'general' ? 'btn-primary' : 'btn-secondary'}`} 
+                className={`btn ${activeTab === 'general' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => { setActiveTab('general'); setStatusMsg(''); }}
                 style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
               >
                 General / Quote / Product
               </button>
-              <button 
+              <button
                 type="button"
-                className={`btn ${activeTab === 'distributor' ? 'btn-primary' : 'btn-secondary'}`} 
+                className={`btn ${activeTab === 'distributor' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => { setActiveTab('distributor'); setStatusMsg(''); }}
                 style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
               >
                 Distributor Channel
               </button>
-              <button 
+              <button
                 type="button"
-                className={`btn ${activeTab === 'oem' ? 'btn-primary' : 'btn-secondary'}`} 
+                className={`btn ${activeTab === 'oem' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => { setActiveTab('oem'); setStatusMsg(''); }}
                 style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
               >
                 OEM / Private Label
               </button>
-              <button 
+              <button
                 type="button"
-                className={`btn ${activeTab === 'career' ? 'btn-primary' : 'btn-secondary'}`} 
+                className={`btn ${activeTab === 'career' ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => { setActiveTab('career'); setStatusMsg(''); }}
                 style={{ fontSize: '0.8rem', padding: '0.5rem 1rem' }}
               >
@@ -393,7 +393,7 @@ setIsSubmitting(true);
             {activeTab === 'general' && (
               <form onSubmit={handleGeneralSubmit} noValidate>
                 <h4 style={{ marginBottom: '1rem', color: 'var(--color-primary)' }}>Request Quote & Product Inquiry</h4>
-                
+
                 <div className="form-row">
                   <div className="form-group">
                     <label className="form-label">Full Name *</label>

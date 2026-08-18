@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminLiveOverlay() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMinimized, setIsMinimized] = useState(() => {
     try {
@@ -133,13 +132,13 @@ export default function AdminLiveOverlay() {
           <i className="fa-solid fa-minus"></i>
         </button>
       </div>
-      
+
       <p style={{ margin: '0 0 0.75rem 0', color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.75rem', lineHeight: '1.4' }}>
         Click any text boxed in <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>dashed borders</span> to edit live. Blur focus to save.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        <button 
+        <button
           onClick={() => navigate('/admin')}
           style={{
             width: '100%',
@@ -157,7 +156,7 @@ export default function AdminLiveOverlay() {
           <i className="fa-solid fa-gauge" style={{ marginRight: '0.4rem' }}></i> Open Admin Panel
         </button>
 
-        <button 
+        <button
           onClick={handleResetTexts}
           style={{
             width: '100%',
@@ -174,7 +173,7 @@ export default function AdminLiveOverlay() {
           <i className="fa-solid fa-rotate-left" style={{ marginRight: '0.4rem' }}></i> Reset Live Texts
         </button>
 
-        <button 
+        <button
           onClick={handleLogout}
           style={{
             width: '100%',

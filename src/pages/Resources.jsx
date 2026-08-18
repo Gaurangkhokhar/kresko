@@ -13,11 +13,15 @@ export default function Resources() {
     const fetchCatalogs = async () => {
       try {
         const data = await catalogApi.getAll();
-        // Filter only Catalogue type documents
-        const catalogDocs = data.filter(cat => cat.documentType === 'Catalogue');
-        setCatalogs(catalogDocs);
+        // Include backend catalog entries. Do not hide backend catalogs because documentType is missing.
+        const allDocs = Array.isArray(data) ? data : [];
+        const catalogDocs = allDocs.filter(
+          cat => !cat.documentType || cat.documentType.toLowerCase() === 'catalogue' || cat.documentType.toLowerCase() === 'catalog'
+        );
+        setCatalogs(catalogDocs.length > 0 ? catalogDocs : allDocs);
       } catch (err) {
         console.error('Failed to fetch catalogs:', err);
+        setCatalogs(getStoredCatalogs());
       } finally {
         setLoading(false);
       }
@@ -25,12 +29,25 @@ export default function Resources() {
     fetchCatalogs();
   }, []);
 
+  // Backend catalog entries may not include a title — fall back to the original
+  // file name so every shared catalog is identifiable.
+  const getCatalogTitle = (catalog) =>
+    (catalog && (catalog.title || catalog.fileName)) || 'Product Catalogue';
+
+  // Backend fileSize can be a display string ("0.12 MB") or a byte count.
+  const formatCatalogSize = (catalog) => {
+    const size = catalog && catalog.fileSize;
+    if (!size) return 'PDF Document';
+    if (typeof size === 'string') return size;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const openViewer = (catalog) => {
     if (!catalog) return;
     const fileUrl = resolveFileUrl(catalog.file);
     const link = fileUrl || catalog.pdfLink;
     if (link) {
-      setViewer({ title: catalog.title || 'Product Catalogue', url: link });
+      setViewer({ title: getCatalogTitle(catalog), url: link });
     } else {
       alert('Product Catalogue file is not available yet. You can upload it via the Admin portal.');
     }
@@ -46,7 +63,7 @@ export default function Resources() {
       // results in a blank/white page, so we avoid that here.
       if (String(link).startsWith('data:')) {
         try {
-          const safeName = (catalog.title || 'catalog').replace(/[^\w\- ]+/g, '').trim() || 'catalog';
+          const safeName = getCatalogTitle(catalog).replace(/[^\w\- ]+/g, '').trim() || 'catalog';
           const a = document.createElement('a');
           a.href = link;
           a.download = `${safeName}.pdf`;
@@ -54,7 +71,7 @@ export default function Resources() {
           a.click();
           document.body.removeChild(a);
           return;
-        } catch (err) {
+        } catch (_err) {
           /* fall through to window.open */
         }
       }
@@ -64,23 +81,14 @@ export default function Resources() {
     }
   };
 
-  // All locally-saved catalogs (added via the Admin "Manage Corporate
-  // Catalog PDF" form — stored as a list so multiple catalogs are supported).
-  // Shown alongside any catalogs synced from the backend.
-  const localCatalogs = getStoredCatalogs();
+  // Backend is primary source of truth. localStorage is fallback/cache only.
+  const displayCatalogs = catalogs.length > 0 ? catalogs : (!loading ? getStoredCatalogs() : []);
 
   const downloads = [
-    ...localCatalogs.map(catalog => ({
-      title: catalog.title || 'Product Catalogue',
+    ...displayCatalogs.map(catalog => ({
+      title: getCatalogTitle(catalog),
       type: 'PDF Document',
-      size: catalog.fileSize ? `${(catalog.fileSize / (1024 * 1024)).toFixed(1)} MB` : 'PDF Document',
-      icon: 'fa-file-pdf',
-      catalog: catalog
-    })),
-    ...catalogs.map(catalog => ({
-      title: catalog.title || 'Product Catalogue',
-      type: 'PDF Document',
-      size: catalog.fileSize ? `${(catalog.fileSize / (1024 * 1024)).toFixed(1)} MB` : 'PDF Document',
+      size: formatCatalogSize(catalog),
       icon: 'fa-file-pdf',
       catalog: catalog
     })),
@@ -127,15 +135,15 @@ export default function Resources() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
             {downloads.map((d, i) => (
-              <div 
-                key={i} 
-                style={{ 
-                  padding: '2rem', 
-                  backgroundColor: 'var(--color-bg-white)', 
-                  border: '1px solid var(--color-border)', 
-                  borderRadius: '8px', 
-                  display: 'flex', 
-                  alignItems: 'center', 
+              <div
+                key={i}
+                style={{
+                  padding: '2rem',
+                  backgroundColor: 'var(--color-bg-white)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: '1.5rem',
                   boxShadow: 'var(--shadow-sm)'
                 }}
@@ -183,22 +191,22 @@ export default function Resources() {
             {faqs.map((faq, idx) => {
               const isOpen = openFaq === idx;
               return (
-                <div 
-                  key={idx} 
-                  style={{ 
-                    backgroundColor: 'var(--color-bg-white)', 
-                    border: '1px solid var(--color-border)', 
-                    borderRadius: '6px', 
-                    overflow: 'hidden' 
+                <div
+                  key={idx}
+                  style={{
+                    backgroundColor: 'var(--color-bg-white)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: '6px',
+                    overflow: 'hidden'
                   }}
                 >
-                  <div 
+                  <div
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    style={{ 
-                      padding: '1.25rem 1.5rem', 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center', 
+                    style={{
+                      padding: '1.25rem 1.5rem',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
                       cursor: 'pointer',
                       fontWeight: 600,
                       color: isOpen ? 'var(--color-accent)' : 'var(--color-primary)',

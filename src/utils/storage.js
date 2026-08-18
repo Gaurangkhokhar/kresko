@@ -167,7 +167,7 @@ export function getHeroSlides() {
   try {
     const raw = JSON.parse(localStorage.getItem(LOCAL_STORAGE_HERO_SLIDES) || 'null');
     if (Array.isArray(raw) && raw.length) return raw;
-  } catch (e) {
+  } catch (_e) {
     // ignore parse errors and fall through to defaults
   }
   return DEFAULT_HERO_SLIDES;
@@ -187,7 +187,7 @@ export function resetHeroSlides() {
 // Help helper to generate complete B2B parameter lists, applications and features dynamically
 function populateProductDetails(p) {
   const pTitle = (p.title || '').toLowerCase();
-  
+
   // Dynamic realistic image path mapping based on category and product title
   let imagePath = '';
   const cat = (p.category || '').toLowerCase();
@@ -787,7 +787,7 @@ export function getStoredCatalogs() {
     const raw = localStorage.getItem(LOCAL_STORAGE_CATALOGS);
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
-  } catch (e) {
+  } catch (_e) {
     return [];
   }
 }
@@ -807,7 +807,7 @@ export function saveStoredCatalog(catalog) {
   try {
     localStorage.setItem(LOCAL_STORAGE_CATALOGS, JSON.stringify(next));
     saved = true;
-  } catch (e) {
+  } catch (_e) {
     /* quota exceeded – drop oldest until it fits */
   }
   if (!saved) {
@@ -816,7 +816,7 @@ export function saveStoredCatalog(catalog) {
         localStorage.setItem(LOCAL_STORAGE_CATALOGS, JSON.stringify(next.slice(i)));
         saved = true;
         break;
-      } catch (e2) {
+      } catch (_e2) {
         /* keep dropping */
       }
     }
@@ -838,7 +838,7 @@ export function getProducts() {
     // (e.g. freshly seeded defaults or backend products) so spec tables, feature
     // lists and dynamic images are always available to ProductDetail / list views.
     return stored.map(p => (p && p.specsTable ? p : populateProductDetails(p)));
-  } catch (e) {
+  } catch (_e) {
     return DEFAULT_PRODUCTS.map(p => populateProductDetails(p));
   }
 }
@@ -873,7 +873,7 @@ export function getReviews() {
   checkAndSeedDatabase();
   try {
     return JSON.parse(localStorage.getItem(LOCAL_STORAGE_REVIEWS)) || DEFAULT_REVIEWS;
-  } catch (e) {
+  } catch (_e) {
     return DEFAULT_REVIEWS;
   }
 }
@@ -901,7 +901,7 @@ export function getBlogs() {
   checkAndSeedDatabase();
   try {
     return JSON.parse(localStorage.getItem(LOCAL_STORAGE_BLOGS)) || DEFAULT_BLOGS;
-  } catch (e) {
+  } catch (_e) {
     return DEFAULT_BLOGS;
   }
 }
@@ -928,7 +928,7 @@ export function deleteBlog(id) {
 export function getEnquiries() {
   try {
     return JSON.parse(localStorage.getItem(LOCAL_STORAGE_ENQUIRIES)) || [];
-  } catch (e) {
+  } catch (_e) {
     return [];
   }
 }
@@ -972,7 +972,7 @@ export async function deleteEnquiry(id) {
   try {
     await inquiryApi.delete(id);
     console.log(`Inquiry ${id} successfully deleted from backend database.`);
-  } catch (e) {
+  } catch (_e) {
     console.warn('Backend inquiry delete API error:', e.message || e);
   }
 
@@ -992,7 +992,7 @@ export function getAdminSecurity() {
   try {
     const data = localStorage.getItem('admin_security_data');
     return data ? JSON.parse(data) : { question: 'What is Kresko primary location?', answer: 'ahmedabad' };
-  } catch (e) {
+  } catch (_e) {
     return { question: 'What is Kresko primary location?', answer: 'ahmedabad' };
   }
 }
@@ -1008,7 +1008,7 @@ export function getProductCategories() {
   if (stored) {
     try {
       cats = JSON.parse(stored);
-    } catch (e) {
+    } catch (_e) {
       cats = PRODUCT_CATEGORIES;
     }
   }
@@ -1038,7 +1038,7 @@ export async function syncCategoriesWithBackend() {
     if (data) {
         // Start with default hardcoded categories
         const parsed = { ...PRODUCT_CATEGORIES };
-        
+
         // Merge with existing local storage (custom local categories)
         const localCats = getProductCategories();
         Object.entries(localCats).forEach(([key, val]) => {
