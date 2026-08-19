@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { getProductCategories } from '../utils/storage';
+import QuoteModal from './QuoteModal';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+  const [isQuoteOpen, setIsQuoteOpen] = useState(false);
+
   // Mobile accordion state managers
-  const [mobileLevel1Open, setMobileLevel1Open] = useState(false); // Toggles 'All Products'
-  const [mobileLevel2Active, setMobileLevel2Active] = useState(null); // Tracks active Category index in Level 1
-  const [mobileCompanyOpen, setMobileCompanyOpen] = useState(false); // Toggles 'More Info' dropdown
-  
+  const [mobileLevel1Open, setMobileLevel1Open] = useState(false); // Toggles 'Products'
+  const [mobileLevel2Active, setMobileLevel2Active] = useState(null); // Tracks active Category index
+  const [mobileSolutionsOpen, setMobileSolutionsOpen] = useState(false);
+
   const location = useLocation();
   const [dropdownForceClose, setDropdownForceClose] = useState(false);
 
@@ -31,14 +33,14 @@ export default function Header() {
     setIsMenuOpen(false);
     setMobileLevel1Open(false);
     setMobileLevel2Active(null);
-    setMobileCompanyOpen(false);
+    setMobileSolutionsOpen(false);
   }, [location]);
 
   const handleLinkClick = () => {
     setIsMenuOpen(false);
     setMobileLevel1Open(false);
     setMobileLevel2Active(null);
-    setMobileCompanyOpen(false);
+    setMobileSolutionsOpen(false);
     setDropdownForceClose(true); // Force close desktop dropdown on click
   };
 
@@ -47,7 +49,7 @@ export default function Header() {
     if (!isMenuOpen) {
       setMobileLevel1Open(false);
       setMobileLevel2Active(null);
-      setMobileCompanyOpen(false);
+      setMobileSolutionsOpen(false);
     }
   }, [isMenuOpen]);
 
@@ -115,7 +117,7 @@ export default function Header() {
       {/* 2. Main Navigation Bar */}
       <header className={`site-header ${isScrolled ? 'scrolled' : ''}`}>
         <div className="container nav-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          
+
           {/* Brand Logo */}
           <div className="logo">
             <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }} onClick={handleLinkClick}>
@@ -138,23 +140,23 @@ export default function Header() {
               Home
             </NavLink>
 
-            {/* 2. About Us */}
+            {/* 2. About */}
             <NavLink to="/about" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-              About Us
+              About
             </NavLink>
 
-            {/* 3. All Products Dropdown */}
-            <div 
+            {/* 3. Products Dropdown */}
+            <div
               className={`nav-dropdown-wrapper ${dropdownForceClose ? 'force-hide-dropdown' : ''}`}
               onMouseEnter={() => setDropdownForceClose(false)}
               onMouseLeave={() => setDropdownForceClose(false)}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <NavLink to="/products" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-                  All Products
+                  Products
                 </NavLink>
-                <button 
-                  className="dropdown-toggle-arrow" 
+                <button
+                  className="dropdown-toggle-arrow"
                   onClick={handleMobileL1Toggle}
                   style={{ display: 'inline-block', border: 'none', background: 'none' }}
                   aria-label="Toggle Products Submenu"
@@ -170,8 +172,8 @@ export default function Header() {
                   return (
                     <div key={idx} className={`dropdown-submenu-wrapper ${hasSub ? 'has-children' : ''}`}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                        <Link 
-                          to={`/products/${cat.slug}`} 
+                        <Link
+                          to={`/products/${cat.slug}`}
                           className="dropdown-item dropdown-item-with-arrow"
                           style={{ flexGrow: 1 }}
                           onClick={handleLinkClick}
@@ -179,7 +181,7 @@ export default function Header() {
                           {cat.name}
                         </Link>
                         {hasSub && (
-                          <button 
+                          <button
                             className="mobile-l2-toggle"
                             onClick={(e) => handleMobileL2Toggle(idx, e)}
                             style={{ padding: '0.5rem 1rem', background: 'none', border: 'none', cursor: 'pointer' }}
@@ -190,13 +192,13 @@ export default function Header() {
                         )}
                       </div>
 
-                      {/* LEVEL 2: Dropdown Subcategories (Flyout right on desktop) */}
+                      {/* LEVEL 2: Dropdown Subcategories */}
                       {hasSub && (
                         <div className={`dropdown-submenu-menu flyout-l2 ${mobileLevel2Active === idx ? 'mobile-l2-expanded' : ''}`}>
                           {cat.sub.map((subItem, sIdx) => (
-                            <Link 
-                              key={sIdx} 
-                              to={`/products/${subItem.slug}`} 
+                            <Link
+                              key={sIdx}
+                              to={`/products/${subItem.slug}`}
                               className="dropdown-item"
                               style={{ paddingLeft: '2rem' }}
                               onClick={handleLinkClick}
@@ -212,84 +214,99 @@ export default function Header() {
               </div>
             </div>
 
-            {/* 4. Chlorine Dioxide */}
-            <NavLink to="/chlorine-dioxide" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-              Chlorine Dioxide
-            </NavLink>
-
-            {/* 5. OEM Manufacturing */}
-            <NavLink to="/oem" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-              OEM Manufacturing
-            </NavLink>
-
-            {/* 6. Company Info Dropdown */}
-            <div 
+            {/* 4. Solutions Dropdown */}
+            <div
               className={`nav-dropdown-wrapper ${dropdownForceClose ? 'force-hide-dropdown' : ''}`}
               onMouseEnter={() => setDropdownForceClose(false)}
               onMouseLeave={() => setDropdownForceClose(false)}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <span className="nav-link" style={{ cursor: 'pointer' }}>
-                  Company Info
-                </span>
-                <button 
-                  className="dropdown-toggle-arrow" 
-                  onClick={(e) => { e.preventDefault(); setMobileCompanyOpen(!mobileCompanyOpen); }}
+                <NavLink to="/chlorine-dioxide" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
+                  Solutions
+                </NavLink>
+                <button
+                  className="dropdown-toggle-arrow"
+                  onClick={(e) => { e.preventDefault(); setMobileSolutionsOpen(!mobileSolutionsOpen); }}
                   style={{ display: 'inline-block', border: 'none', background: 'none' }}
-                  aria-label="Toggle Company Submenu"
+                  aria-label="Toggle Solutions Submenu"
                 >
                   <i className="fa-solid fa-chevron-down" style={{ fontSize: '0.7rem' }}></i>
                 </button>
               </div>
 
-              {/* LEVEL 1: Dropdown Company Options */}
-              <div className={`nav-dropdown-menu flyout-l1 ${mobileCompanyOpen ? 'mobile-expanded' : ''}`}>
-                <Link to="/industries" className="dropdown-item" onClick={handleLinkClick}>
-                  Industries We Serve
+              <div className={`nav-dropdown-menu flyout-l1 ${mobileSolutionsOpen ? 'mobile-expanded' : ''}`}>
+                <Link to="/chlorine-dioxide" className="dropdown-item" onClick={handleLinkClick}>
+                  Chlorine Dioxide (ClO2)
                 </Link>
-                <Link to="/facility" className="dropdown-item" onClick={handleLinkClick}>
-                  Manufacturing Facility
+                <Link to="/oem" className="dropdown-item" onClick={handleLinkClick}>
+                  OEM & Private Labeling
                 </Link>
-                <Link to="/certifications" className="dropdown-item" onClick={handleLinkClick}>
-                  Certifications
+                <Link to="/products/water-treatment" className="dropdown-item" onClick={handleLinkClick}>
+                  Water & Wastewater Treatment
                 </Link>
-                <Link to="/resources" className="dropdown-item" onClick={handleLinkClick}>
-                  Resources / Catalog
-                </Link>
-                <Link to="/gallery" className="dropdown-item" onClick={handleLinkClick}>
-                  Gallery
-                </Link>
-                <Link to="/blog" className="dropdown-item" onClick={handleLinkClick}>
-                  Blog
+                <Link to="/products/floor-care" className="dropdown-item" onClick={handleLinkClick}>
+                  Industrial Sanitation & Hygiene
                 </Link>
               </div>
             </div>
 
-            {/* 7. Contact Us */}
-            <NavLink to="/contact" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-              Contact Us
+            {/* 5. Industries */}
+            <NavLink to="/industries" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
+              Industries
             </NavLink>
-            
+
+            {/* 6. Resources */}
+            <NavLink to="/resources" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
+              Resources
+            </NavLink>
+
+            {/* 7. Blogs */}
+            <NavLink to="/blog" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
+              Blogs
+            </NavLink>
+
+            {/* 8. Contact */}
+            <NavLink to="/contact" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
+              Contact
+            </NavLink>
+
             {/* Mobile-only CTA */}
-            <Link to="/contact" className="btn btn-primary mobile-only-cta" style={{ width: '85%', margin: '1.5rem auto 0 auto', backgroundColor: 'var(--color-accent)', border: 'none' }} onClick={handleLinkClick}>
-              Get Quote
-            </Link>
+            <button
+              onClick={() => { handleLinkClick(); setIsQuoteOpen(true); }}
+              className="btn btn-primary mobile-only-cta"
+              style={{ width: '85%', margin: '1.5rem auto 0 auto', backgroundColor: 'var(--color-accent)', border: 'none' }}
+            >
+              REQUEST A QUOTE
+            </button>
           </nav>
 
           {/* Right Side Header Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            {/* Desktop Right Side Get Quote CTA */}
+            {/* Desktop Right Side REQUEST A QUOTE CTA */}
             <div className="header-actions">
-              <Link to="/contact" className="btn btn-primary" style={{ backgroundColor: 'var(--color-accent)', hoverBackgroundColor: 'var(--color-accent-hover)', borderColor: 'var(--color-accent)', padding: '0.6rem 1.4rem', color: '#fff', borderRadius: '4px', fontWeight: '700', fontSize: '0.85rem' }} onClick={handleLinkClick}>
-                Get Quote
-              </Link>
+              <button
+                onClick={() => setIsQuoteOpen(true)}
+                className="btn btn-primary"
+                style={{
+                  backgroundColor: 'var(--color-accent)',
+                  borderColor: 'var(--color-accent)',
+                  padding: '0.65rem 1.5rem',
+                  color: '#fff',
+                  borderRadius: '4px',
+                  fontWeight: '800',
+                  fontSize: '0.82rem',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                REQUEST A QUOTE
+              </button>
             </div>
 
             {/* Mobile Hamburger Burger */}
-            <div 
-              className={`burger-menu ${isMenuOpen ? 'active' : ''}`} 
+            <div
+              className={`burger-menu ${isMenuOpen ? 'active' : ''}`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Toggle Navigation Menu" 
+              aria-label="Toggle Navigation Menu"
               role="button"
             >
               <span className="burger-bar"></span>
@@ -300,6 +317,7 @@ export default function Header() {
 
         </div>
       </header>
+      <QuoteModal isOpen={isQuoteOpen} onClose={() => setIsQuoteOpen(false)} />
     </>
   );
 }

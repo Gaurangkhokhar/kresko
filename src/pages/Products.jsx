@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getProducts, getProductCategories, deleteProduct } from '../utils/storage';
+import { productsApi } from '../utils/api';
 import ProductImage from '../components/ProductImage';
 
 export default function Products() {
@@ -49,7 +50,7 @@ export default function Products() {
   };
 
   const handleInlineEditProduct = (p) => {
-    sessionStorage.setItem('editProductPayload', JSON.stringify({ id: p.id, category: p.category, subcategory: p.subcategory }));
+    sessionStorage.setItem('editProductPayload', JSON.stringify({ id: p.id || p._id, category: p.category, subcategory: p.subcategory }));
     navigate('/admin');
   };
 
@@ -65,7 +66,21 @@ export default function Products() {
   }, [categoryId, categories]);
 
   useEffect(() => {
-    setProducts(getProducts());
+    const loadProducts = async () => {
+      try {
+        const data = await productsApi.getAll();
+        const arr = Array.isArray(data) ? data : (data && Array.isArray(data.products) ? data.products : []);
+        if (arr.length > 0) {
+          setProducts(arr);
+        } else {
+          setProducts(getProducts());
+        }
+      } catch (err) {
+        console.warn('Products page: backend fetch notice:', err);
+        setProducts(getProducts());
+      }
+    };
+    loadProducts();
   }, []);
 
   const handleSelect = (key) => {
@@ -239,7 +254,7 @@ export default function Products() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', alignItems: 'center', width: '100%' }}>
                 {filteredProducts.map(p => (
                   <div
-                    key={p.id}
+                    key={p.id || p._id || p.title}
                     className="product-horizontal-card"
                     style={{
                       display: 'flex',
@@ -396,7 +411,7 @@ export default function Products() {
 
                         {/* Elevated CTA Button */}
                         <Link
-                          to={`/products/${p.category}/${p.id}`}
+                          to={`/products/${p.category}/${p.id || p._id}`}
                           className="btn btn-primary"
                           style={{
                             width: '100%',

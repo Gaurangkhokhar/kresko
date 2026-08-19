@@ -115,7 +115,7 @@ export default function CategoryProducts() {
           <div className="products-grid">
             {products.map(p => (
               <div 
-                key={p.id} 
+                key={p.id || p._id || p.title} 
                 className="product-item-card" 
                 style={{ 
                   display: 'flex', 
@@ -142,7 +142,7 @@ export default function CategoryProducts() {
                     {p.desc}
                   </p>
                   
-                  <Link to={`/products/${categoryId}/${p.id}`} className="btn btn-primary" style={{ width: '100%', borderRadius: '30px', padding: '0.65rem 0', fontSize: '0.8rem', textAlign: 'center', marginTop: 'auto' }}>
+                  <Link to={`/products/${categoryId}/${p.id || p._id}`} className="btn btn-primary" style={{ width: '100%', borderRadius: '30px', padding: '0.65rem 0', fontSize: '0.8rem', textAlign: 'center', marginTop: 'auto' }}>
                     View Specifications Sheet
                   </Link>
                 </div>

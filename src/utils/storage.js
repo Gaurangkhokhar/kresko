@@ -138,7 +138,7 @@ export const PRODUCT_CATEGORIES = {
 // ─────────────────────────────────────────────────────────────
 const LOCAL_STORAGE_HERO_SLIDES = 'kresko_hero_slides';
 
-const DEFAULT_HERO_SLIDES = [
+export const DEFAULT_HERO_SLIDES = [
   {
     image: '/images/photo-1528218609959-006f98e6b79e.jpeg',
     tag: 'B2B Chemical Concentrates',

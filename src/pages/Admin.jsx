@@ -1372,50 +1372,32 @@ export default function Admin() {
                   </div>
                 )}
 
-                <div style={{ overflowX: 'auto', border: '1px solid var(--color-border)', borderRadius: '4px' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
-                    <thead>
-                      <tr style={{ backgroundColor: 'var(--color-bg-light)', borderBottom: '1px solid var(--color-border)' }}>
-                        <th style={{ padding: '0.85rem' }}>Thumbnail</th>
-                        <th style={{ padding: '0.85rem' }}>Product Title</th>
-                        <th style={{ padding: '0.85rem' }}>Category</th>
-                        <th style={{ padding: '0.85rem' }}>Price</th>
-                        <th style={{ padding: '0.85rem', width: '180px' }}>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {products.map(p => (
-                        <tr key={p.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                          <td style={{ padding: '0.5rem' }}>
-                            <div style={{ width: '40px', height: '40px' }}>
-                              <ProductImage category={p.category} title={p.title} image={p.image} />
-                            </div>
-                          </td>
-                          <td style={{ padding: '0.85rem', fontWeight: 600 }}>{p.title}</td>
-                          <td style={{ padding: '0.85rem', textTransform: 'capitalize' }}>{p.category}</td>
-                          <td style={{ padding: '0.85rem', color: 'var(--color-accent)', fontWeight: 600 }}>{p.price}</td>
-                          <td style={{ padding: '0.85rem' }}>
-                            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                              <button
-                                className="btn btn-primary"
-                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem' }}
-                                onClick={() => handleEditProduct(p)}
-                              >
-                                <i className="fa-solid fa-pen" style={{ marginRight: '0.3rem' }}></i> Edit
-                              </button>
-                              <button
-                                className="btn btn-secondary"
-                                style={{ padding: '0.4rem 0.8rem', fontSize: '0.7rem', color: '#dc2626', borderColor: '#fca5a5' }}
-                                onClick={() => handleDeleteProduct(p.id, p.title)}
-                              >
-                                <i className="fa-solid fa-trash-can"></i> Delete
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* Product management now lives inside the Product Manager &
+                    Category Hierarchy tab (choose Category → Subcategory → product
+                    with price, dilution, MOQ, images and description).
+                    Products are no longer listed redundantly here. */}
+                <div style={{ padding: '1.5rem', border: '1px dashed var(--color-border)', borderRadius: '6px', backgroundColor: 'var(--color-bg-light)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <i className="fa-solid fa-layer-group" style={{ fontSize: '1.6rem', color: 'var(--color-accent)' }}></i>
+                    <div style={{ flex: 1, minWidth: '220px' }}>
+                      <h5 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+                        Products are managed inside Categories &amp; Subcategories
+                      </h5>
+                      <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.82rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
+                        Open the <strong>Product Manager &amp; Category Hierarchy</strong> tab, choose a
+                        category, then a subcategory, and you can add / edit / delete each product together with
+                        its price, MOQ, dilution, images and description directly under that subcategory.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      style={{ padding: '0.6rem 1.2rem', fontSize: '0.82rem', fontWeight: 700 }}
+                      onClick={() => setActiveTab('manage-categories')}
+                    >
+                      <i className="fa-solid fa-arrow-right" style={{ marginRight: '0.4rem' }}></i> Go to Category Manager
+                    </button>
+                  </div>
                 </div>
               </div>
 

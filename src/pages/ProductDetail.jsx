@@ -52,7 +52,7 @@ export default function ProductDetail() {
 
     // Resolve Product
     const allProducts = getProducts();
-    const foundProduct = allProducts.find(p => p.id === productId);
+    const foundProduct = allProducts.find(p => p.id === productId || p._id === productId || p.uniqueId === productId);
     setProduct(foundProduct);
     setActiveImageIndex(0);
     setActiveView('main');
@@ -810,7 +810,7 @@ export default function ProductDetail() {
             <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '2rem' }}>
               {relatedProducts.map(p => (
                 <div
-                  key={p.id}
+                  key={p.id || p._id || p.title}
                   style={{
                     backgroundColor: '#fff',
                     border: '1px solid var(--color-border)',
@@ -848,7 +848,7 @@ export default function ProductDetail() {
                       {p.title}
                     </h4>
                     <Link
-                      to={`/products/${p.category}/${p.id}`}
+                      to={`/products/${p.category}/${p.id || p._id}`}
                       style={{
                         marginTop: 'auto',
                         fontSize: '0.78rem',

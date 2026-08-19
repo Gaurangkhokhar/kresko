@@ -1,33 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getReviews, getBlogs, saveEnquiry, getHeroSlides, getProductCategories } from '../utils/storage';
-import { blogsApi, heroSlidesApi } from '../utils/api';
+import { getReviews, getBlogs, saveEnquiry, getHeroSlides, getProductCategories, DEFAULT_HERO_SLIDES } from '../utils/storage';
+import { blogsApi, heroSlidesApi, catalogApi } from '../utils/api';
 import EditableText from '../components/EditableText';
 import FaqSection from '../components/FaqSection';
+import QuoteModal from '../components/QuoteModal';
+
+// Guaranteed-to-exist local hero image bundled with the site. Used whenever a
+// slide has no image or its image fails to load (e.g. from the backend).
+const FALLBACK_HERO_IMAGE = '/images/photo-1528218609959-006f98e6b79e.jpeg';
+
+// A slide is only "usable" if it renders at least one piece of visible content
+// (a background image, title, tag or description). Empty slides turn the hero
+// into a blank gradient, so they are always dropped.
+const isUsableSlide = (s) =>
+  s &&
+  typeof s === 'object' &&
+  (
+    (s.image && typeof s.image === 'string') ||
+    Boolean(s.title) ||
+    Boolean(s.tag) ||
+    Boolean(s.desc)
+  );
+
+// Normalize slides so every rendered slide is guaranteed to be visible:
+//  - inactive slides are removed
+//  - slides without usable content are dropped
+//  - each slide gets a valid fallback image when its own is missing
+const sanitizeSlides = (list) => {
+  const arr = Array.isArray(list) ? list : [];
+  return arr
+    .filter(s => s && s.isActive !== false && s.active !== false)
+    .filter(isUsableSlide)
+    .map((s) => ({
+      ...s,
+      image: (s.image && typeof s.image === 'string') ? s.image : (sanitizeSlides.fallback || '')
+    }))
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+};
+sanitizeSlides.fallback = FALLBACK_HERO_IMAGE;
 
 export default function Home() {
   // Hero Slide State
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [slides, setSlides] = useState(() => getHeroSlides());
+  const [slides, setSlides] = useState(() => sanitizeSlides(getHeroSlides()));
 
   useEffect(() => {
     const loadHeroSlides = async () => {
+      let activeSlides = [];
       try {
         const data = await heroSlidesApi.getAll();
-        if (Array.isArray(data) && data.length > 0) {
-          const activeSlides = data
-            .filter(s => s.isActive !== false && s.active !== false)
-            .sort((a, b) => (a.order || 0) - (b.order || 0));
-          if (activeSlides.length > 0) {
-            setSlides(activeSlides);
-            return;
-          }
-        }
+        const raw = Array.isArray(data) ? data : (data && Array.isArray(data.sliders) ? data.sliders : []);
+        activeSlides = sanitizeSlides(raw);
       } catch (err) {
         console.warn('Home: failed to fetch hero slides from backend, using fallback:', err);
       }
-      const fallback = getHeroSlides().filter(s => s.overlay !== false && s.active !== false);
-      setSlides(fallback.length > 0 ? fallback : getHeroSlides());
+
+      if (activeSlides.length > 0) {
+        setSlides(activeSlides);
+        setCurrentSlide(0);
+        return;
+      }
+
+      // Backend unavailable / returned nothing usable. Prefer the bundled
+      // defaults (guaranteed local images + text) over admin localStorage,
+      // which may reference broken backend image URLs.
+      const defaults = sanitizeSlides(DEFAULT_HERO_SLIDES);
+      if (defaults.length > 0) {
+        setSlides(defaults);
+        setCurrentSlide(0);
+        return;
+      }
+      const local = sanitizeSlides(getHeroSlides());
+      if (local.length > 0) {
+        setSlides(local);
+        setCurrentSlide(0);
+        return;
+      }
+      setSlides(activeSlides);
+      setCurrentSlide(0);
     };
 
     loadHeroSlides();
@@ -66,10 +117,23 @@ export default function Home() {
   // Reviews and Blogs
   const [testimonials, setTestimonials] = useState([]);
   const [recentBlogs, setRecentBlogs] = useState([]);
-    const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [isQuoteOpen, setIsQuoteOpen] = useState(false);
+  const [selectedProductQuote, setSelectedProductQuote] = useState('');
 
   useEffect(() => {
     setTestimonials(getReviews());
+
+    // Fetch catalogs from backend API
+    const loadCatalogs = async () => {
+      try {
+        await catalogApi.getAll();
+      } catch (err) {
+        console.warn('Home: catalogs backend fetch notice:', err);
+      }
+    };
+
+    loadCatalogs();
 
     // Fetch blogs from backend
     const loadBlogs = async () => {
@@ -147,8 +211,10 @@ export default function Home() {
           {slides.map((slide, index) => (
             <div
               key={index}
-              className={slide.overlay === false ? 'hero-slide no-overlay' : 'hero-slide'}
-              style={{ backgroundImage: `url(${slide.image})` }}
+              className={slide && slide.overlay === false ? 'hero-slide no-overlay' : 'hero-slide'}
+              style={{
+                backgroundImage: `url(${(slide && slide.image) || FALLBACK_HERO_IMAGE})`
+              }}
             >
               <div className="container">
                 <div className="hero-content">
@@ -162,8 +228,9 @@ export default function Home() {
                     <EditableText id={`home_slide_desc_${index}`} defaultText={slide.desc} />
                   </p>
                   <div className="hero-buttons">
-                    <Link to="/products" className="btn btn-primary">Browse Concentrates</Link>
-                    <Link to="/contact" className="btn btn-white">Request Bulk Quote</Link>
+                    <Link to="/products" className="btn btn-primary" style={{ backgroundColor: 'var(--color-accent, #dc2626)', borderColor: 'var(--color-accent, #dc2626)' }}>EXPLORE PRODUCTS</Link>
+                    <button onClick={() => setIsQuoteOpen(true)} className="btn btn-white" style={{ fontWeight: 800 }}>REQUEST A QUOTE</button>
+                    <Link to="/resources" className="btn btn-secondary" style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.4)' }}>VIEW CATALOGUE</Link>
                   </div>
                 </div>
               </div>
@@ -185,6 +252,103 @@ export default function Home() {
         >
           <i className="fa-solid fa-chevron-right"></i>
         </button>
+      </section>
+
+      {/* 2. Compact Trust Strip */}
+      <section style={{ backgroundColor: '#0f172a', color: '#ffffff', borderTop: '3px solid var(--color-accent, #dc2626)', padding: '1.75rem 0' }}>
+        <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', textAlign: 'center' }}>
+          <div style={{ padding: '0.5rem 1rem' }}>
+            <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--color-accent, #dc2626)', lineHeight: 1 }}>12+</div>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '0.4rem', color: '#cbd5e1' }}>Years of Experience</div>
+          </div>
+          <div style={{ padding: '0.5rem 1rem', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: '2rem', fontWeight: 900, color: '#0284c7', lineHeight: 1 }}>50+</div>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '0.4rem', color: '#cbd5e1' }}>Products & Formulations</div>
+          </div>
+          <div style={{ padding: '0.5rem 1rem', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: '2rem', fontWeight: 900, color: '#22c55e', lineHeight: 1 }}>10+</div>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '0.4rem', color: '#cbd5e1' }}>Industries Served</div>
+          </div>
+          <div style={{ padding: '0.5rem 1rem', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: '2rem', fontWeight: 900, color: '#f59e0b', lineHeight: 1 }}>15+</div>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '0.4rem', color: '#cbd5e1' }}>Global Export Markets</div>
+          </div>
+          <div style={{ padding: '0.5rem 1rem', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ fontSize: '2rem', fontWeight: 900, color: '#a855f7', lineHeight: 1 }}>ISO & FDA</div>
+            <div style={{ fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '0.4rem', color: '#cbd5e1' }}>Quality Certified</div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Editorial About Kresko Section */}
+      <section className="section" style={{ backgroundColor: '#ffffff' }}>
+        <div className="container">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3.5rem', alignItems: 'center' }}>
+            <div style={{ position: 'relative' }}>
+              <div style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(15,23,42,0.12)', border: '1px solid #e2e8f0' }}>
+                <img
+                  src="/images/mfg_quality_assurance.png"
+                  alt="Kresko Chemicals Manufacturing Plant"
+                  style={{ width: '100%', height: '420px', objectFit: 'cover', display: 'block' }}
+                  onError={(e) => { e.currentTarget.src = '/images/photo-1528218609959-006f98e6b79e.jpeg'; }}
+                />
+              </div>
+              <div style={{
+                position: 'absolute',
+                bottom: '-1.5rem',
+                right: '-1rem',
+                backgroundColor: '#0f172a',
+                color: '#ffffff',
+                padding: '1.25rem 1.75rem',
+                borderRadius: '8px',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+                borderLeft: '4px solid var(--color-accent, #dc2626)',
+                maxWidth: '260px'
+              }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>Ahmedabad Plant</div>
+                <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '2px' }}>High-Capacity Compounding & Synthesis Facility</div>
+              </div>
+            </div>
+
+            <div>
+              <span style={{ fontSize: '0.82rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--color-accent, #dc2626)', display: 'block', marginBottom: '0.5rem' }}>
+                ABOUT KRESKO CHEMICALS
+              </span>
+              <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.25, marginBottom: '1.25rem' }}>
+                Engineering Advanced Chemical Formulations for Industry & Hygiene
+              </h2>
+              <p style={{ fontSize: '0.95rem', color: '#475569', lineHeight: 1.7, marginBottom: '1rem' }}>
+                Kresko Chemicals is a premier B2B manufacturer and bulk supplier of specialized chemical concentrates, Chlorine Dioxide solutions, water treatment compounds, and cleaning product bases.
+              </p>
+              <p style={{ fontSize: '0.95rem', color: '#475569', lineHeight: 1.7, marginBottom: '1.5rem' }}>
+                Headquartered in Ahmedabad, Gujarat, our ISO 9001:2015 and FDA certified manufacturing plant features state-of-the-art compounding reactors, in-house analytical testing, and high-speed filling lines designed to supply global brands, facility networks, and industrial distributors.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <i className="fa-solid fa-circle-check" style={{ color: '#0284c7' }}></i>
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>30X High-Dilution Tech</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <i className="fa-solid fa-circle-check" style={{ color: '#0284c7' }}></i>
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>Full OEM & Private Label</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <i className="fa-solid fa-circle-check" style={{ color: '#0284c7' }}></i>
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>Batch COA Guarantees</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <i className="fa-solid fa-circle-check" style={{ color: '#0284c7' }}></i>
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>Worldwide Freight Export</span>
+                </div>
+              </div>
+
+              <Link to="/about" className="btn btn-primary" style={{ backgroundColor: '#0f172a', borderColor: '#0f172a', padding: '0.85rem 1.75rem' }}>
+                LEARN MORE ABOUT KRESKO <i className="fa-solid fa-arrow-right" style={{ marginLeft: '0.5rem' }}></i>
+              </Link>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* 2. Featured Category Solutions Range */}
@@ -368,7 +532,102 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. Industries Served */}
+      {/* 6. SOLUTIONS FOR REAL INDUSTRIAL CHALLENGES */}
+      <section className="section" style={{ backgroundColor: '#0f172a', color: '#ffffff' }}>
+        <div className="container">
+          <div className="section-header" style={{ marginBottom: '3.5rem' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: '#0284c7', display: 'block', marginBottom: '0.35rem' }}>
+              APPLICATIONS & FIELD EXPERTISE
+            </span>
+            <h2 style={{ color: '#ffffff' }}>SOLUTIONS FOR REAL INDUSTRIAL CHALLENGES</h2>
+            <p style={{ color: '#94a3b8' }}>Targeted chemical and water treatment solutions for critical industrial operational demands.</p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
+            {/* Solution 1 */}
+            <div style={{ backgroundColor: '#1e293b', borderRadius: '8px', padding: '2rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: '50px', height: '50px', borderRadius: '8px', backgroundColor: 'rgba(2,132,199,0.15)', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', marginBottom: '1.25rem' }}>
+                <i className="fa-solid fa-droplet"></i>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.75rem' }}>Industrial Water Treatment</h3>
+              <p style={{ fontSize: '0.88rem', color: '#94a3b8', lineHeight: 1.6, marginBottom: '1.5rem', flexGrow: 1 }}>
+                Biocides, coagulants, and scale inhibitors for raw water clarification, cooling towers, and boiler feed systems.
+              </p>
+              <Link to="/chlorine-dioxide" style={{ fontSize: '0.82rem', fontWeight: 800, color: '#0284c7', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                Explore Water Solutions <i className="fa-solid fa-arrow-right"></i>
+              </Link>
+            </div>
+
+            {/* Solution 2 */}
+            <div style={{ backgroundColor: '#1e293b', borderRadius: '8px', padding: '2rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: '50px', height: '50px', borderRadius: '8px', backgroundColor: 'rgba(220,38,38,0.15)', color: 'var(--color-accent, #dc2626)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', marginBottom: '1.25rem' }}>
+                <i className="fa-solid fa-shield-virus"></i>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.75rem' }}>Disinfection & Bio-Safety</h3>
+              <p style={{ fontSize: '0.88rem', color: '#94a3b8', lineHeight: 1.6, marginBottom: '1.5rem', flexGrow: 1 }}>
+                Pure Chlorine Dioxide (ClO2) generator precursors and PCMx disinfectants eliminating 99.999% of pathogens in hospitals & food processing.
+              </p>
+              <Link to="/chlorine-dioxide" style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--color-accent, #dc2626)', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                Explore Disinfection Tech <i className="fa-solid fa-arrow-right"></i>
+              </Link>
+            </div>
+
+            {/* Solution 3 */}
+            <div style={{ backgroundColor: '#1e293b', borderRadius: '8px', padding: '2rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: '50px', height: '50px', borderRadius: '8px', backgroundColor: 'rgba(34,197,94,0.15)', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', marginBottom: '1.25rem' }}>
+                <i className="fa-solid fa-filter"></i>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.75rem' }}>RO System Maintenance</h3>
+              <p style={{ fontSize: '0.88rem', color: '#94a3b8', lineHeight: 1.6, marginBottom: '1.5rem', flexGrow: 1 }}>
+                High-performance anti-scalants, pH buffers, and membrane cleaning chemicals extending reverse osmosis membrane life.
+              </p>
+              <Link to="/products" style={{ fontSize: '0.82rem', fontWeight: 800, color: '#22c55e', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                Explore Membrane Chemicals <i className="fa-solid fa-arrow-right"></i>
+              </Link>
+            </div>
+
+            {/* Solution 4 */}
+            <div style={{ backgroundColor: '#1e293b', borderRadius: '8px', padding: '2rem', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ width: '50px', height: '50px', borderRadius: '8px', backgroundColor: 'rgba(168,85,247,0.15)', color: '#a855f7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', marginBottom: '1.25rem' }}>
+                <i className="fa-solid fa-soap"></i>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', marginBottom: '0.75rem' }}>Commercial Sanitation & Hygiene</h3>
+              <p style={{ fontSize: '0.88rem', color: '#94a3b8', lineHeight: 1.6, marginBottom: '1.5rem', flexGrow: 1 }}>
+                Concentrated floor cleaners, kitchen degreasers, laundry detergents, and personal care bases dilutable up to 30X.
+              </p>
+              <Link to="/products" style={{ fontSize: '0.82rem', fontWeight: 800, color: '#a855f7', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                Explore Concentrates <i className="fa-solid fa-arrow-right"></i>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. CATALOGUE CTA SECTION */}
+      <section style={{ backgroundColor: '#0284c7', color: '#ffffff', padding: '4rem 0', position: 'relative', overflow: 'hidden' }}>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '2rem', position: 'relative', zIndex: 2 }}>
+          <div style={{ maxWidth: '650px' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', backgroundColor: 'rgba(255,255,255,0.18)', padding: '0.3rem 0.8rem', borderRadius: '4px', display: 'inline-block', marginBottom: '0.75rem' }}>
+              TECHNICAL DOCUMENTATION
+            </span>
+            <h2 style={{ fontSize: '2.1rem', fontWeight: 800, color: '#ffffff', lineHeight: 1.25, marginBottom: '0.75rem' }}>
+              EXPLORE OUR COMPLETE PRODUCT CATALOGUE
+            </h2>
+            <p style={{ fontSize: '1rem', opacity: 0.92, lineHeight: 1.6, margin: 0 }}>
+              Access detailed technical specifications, application protocols, dilution ratios, and chemical properties for all Kresko products.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <Link to="/resources" className="btn btn-white" style={{ fontWeight: 900, color: '#0f172a', padding: '0.9rem 1.75rem' }}>
+              VIEW CATALOGUES <i className="fa-solid fa-eye" style={{ marginLeft: '0.5rem' }}></i>
+            </Link>
+            <button onClick={() => setIsQuoteOpen(true)} className="btn btn-secondary" style={{ borderColor: '#ffffff', color: '#ffffff', padding: '0.9rem 1.75rem' }}>
+              REQUEST CATALOG PDF
+            </button>
+          </div>
+        </div>
+      </section>
       <section className="section" style={{ backgroundColor: 'var(--color-bg-light)', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)' }}>
         <div className="container">
           <div className="section-header">
@@ -704,6 +963,12 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <QuoteModal
+        isOpen={isQuoteOpen}
+        onClose={() => setIsQuoteOpen(false)}
+        defaultProduct={selectedProductQuote}
+      />
     </div>
   );
 }
