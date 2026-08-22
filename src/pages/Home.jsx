@@ -40,44 +40,89 @@ const sanitizeSlides = (list) => {
 };
 sanitizeSlides.fallback = FALLBACK_HERO_IMAGE;
 
+// Quick loadability probe for an image URL. Local ("/") assets are trusted
+// without a network request; remote URLs (e.g. hosted on kreskobackend) are
+// verified by decoding them so 404/503/blank images are detected and never
+// shipped to the hero (which would otherwise render a blank gradient slide).
+const checkImage = (url) =>
+  new Promise((resolve) => {
+    if (!url || typeof url !== 'string') return resolve(false);
+    if (url.startsWith('/')) return resolve(true);
+    const img = new Image();
+    let done = false;
+    const finish = (ok) => {
+      if (done) return;
+      done = true;
+      img.onload = img.onerror = null;
+      clearTimeout(timer);
+      resolve(ok);
+    };
+    const timer = setTimeout(() => finish(false), 5000);
+    img.onload = () => finish(true);
+    img.onerror = () => finish(false);
+    img.src = url;
+  });
+
+// Adopt slides from a candidate list only when at least one slide carries a
+// loadable image (local or remote). Slides whose image cannot load get a local
+// fallback image. Returns { adopted: false } when no reliable slide can be
+// produced so the caller falls through to a guaranteed-safe source.
+const resolveCandidates = async (list) => {
+  const base = sanitizeSlides(list);
+  if (base.length === 0) return { adopted: false, slides: [] };
+  const checks = await Promise.all(
+    base.map(async (s) => ({ s, ok: await checkImage(s.image) }))
+  );
+  const anyValid = checks.some((c) => c.ok);
+  if (!anyValid) return { adopted: false, slides: [] };
+  const resolved = checks.map((c) =>
+    c.ok
+      ? c.s
+      : {
+          ...c.s,
+          image:
+            (DEFAULT_HERO_SLIDES.find((d) => d.tag === c.s.tag) || DEFAULT_HERO_SLIDES[0])
+              ?.image || FALLBACK_HERO_IMAGE,
+        }
+  );
+  return { adopted: true, slides: resolved };
+};
+
 export default function Home() {
   // Hero Slide State
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [slides, setSlides] = useState(() => sanitizeSlides(getHeroSlides()));
+  const [slides, setSlides] = useState(() => sanitizeSlides(DEFAULT_HERO_SLIDES));
 
   useEffect(() => {
     const loadHeroSlides = async () => {
-      let activeSlides = [];
+      // 1) Prefer working slides from the backend (image loadability validated).
       try {
         const data = await heroSlidesApi.getAll();
         const raw = Array.isArray(data) ? data : (data && Array.isArray(data.sliders) ? data.sliders : []);
-        activeSlides = sanitizeSlides(raw);
+        const { adopted, slides: resolved } = await resolveCandidates(raw);
+        if (adopted) {
+          setSlides(resolved);
+          setCurrentSlide(0);
+          return;
+        }
+        console.warn('Home: backend hero slides skipped (no loadable images), using defaults.');
       } catch (err) {
-        console.warn('Home: failed to fetch hero slides from backend, using fallback:', err);
+        console.warn('Home: backend hero slides unavailable, using local defaults:', err);
       }
 
-      if (activeSlides.length > 0) {
-        setSlides(activeSlides);
-        setCurrentSlide(0);
-        return;
-      }
+      // 2) Admin localStorage slides (also image-validated).
+      try {
+        const { adopted, slides: resolved } = await resolveCandidates(getHeroSlides());
+        if (adopted) {
+          setSlides(resolved);
+          setCurrentSlide(0);
+          return;
+        }
+      } catch (_e) {}
 
-      // Backend unavailable / returned nothing usable. Prefer the bundled
-      // defaults (guaranteed local images + text) over admin localStorage,
-      // which may reference broken backend image URLs.
+      // 3) Bundled defaults - guaranteed local images + text, always safe.
       const defaults = sanitizeSlides(DEFAULT_HERO_SLIDES);
-      if (defaults.length > 0) {
-        setSlides(defaults);
-        setCurrentSlide(0);
-        return;
-      }
-      const local = sanitizeSlides(getHeroSlides());
-      if (local.length > 0) {
-        setSlides(local);
-        setCurrentSlide(0);
-        return;
-      }
-      setSlides(activeSlides);
+      setSlides(defaults);
       setCurrentSlide(0);
     };
 

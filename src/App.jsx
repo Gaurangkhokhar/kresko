@@ -3,7 +3,7 @@ import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-d
 import { syncCategoriesWithBackend, syncProductsWithBackend } from './utils/storage';
 
 // Import Layout Components
-import Header from './components/Header';
+import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
 // Import Pages
@@ -46,7 +46,7 @@ export default function App() {
       <ScrollToTop />
       <AdminLiveOverlay />
       <div className="app-wrapper" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Header />
+        <Navbar />
         
         <main style={{ flexGrow: 1 }}>
           <Routes>

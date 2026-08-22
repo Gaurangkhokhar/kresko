@@ -1,0 +1,2 @@
+[27468:26020:0820/144520.836:ERROR:sandbox\policy\win\sandbox_win.cc:789] Sandbox cannot access executable C:\Users\jaatg\AppData\Local\ms-playwright\chromium-1228\chrome-win64\chrome.exe. Check filesystem permissions are valid. See https://bit.ly/31yqMJR.: Access is denied. (0x5)
+[27468:21176:0820/144521.072:ERROR:content\browser\network_service_instance_impl.cc:722] Network service crashed or was terminated, restarting service.

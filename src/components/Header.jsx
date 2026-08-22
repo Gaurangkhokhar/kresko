@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Link, useLocation } from 'react-router-dom';
-import { getProductCategories } from '../utils/storage';
+import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom';
 import QuoteModal from './QuoteModal';
 
 export default function Header() {
@@ -9,11 +8,10 @@ export default function Header() {
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
 
   // Mobile accordion state managers
-  const [mobileLevel1Open, setMobileLevel1Open] = useState(false); // Toggles 'Products'
-  const [mobileLevel2Active, setMobileLevel2Active] = useState(null); // Tracks active Category index
-  const [mobileSolutionsOpen, setMobileSolutionsOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null); // Which dropdown is expanded on mobile
 
   const location = useLocation();
+  const navigate = useNavigate();
   const [dropdownForceClose, setDropdownForceClose] = useState(false);
 
   useEffect(() => {
@@ -31,61 +29,108 @@ export default function Header() {
   // Close mobile menus on route shift
   useEffect(() => {
     setIsMenuOpen(false);
-    setMobileLevel1Open(false);
-    setMobileLevel2Active(null);
-    setMobileSolutionsOpen(false);
+    setOpenMenu(null);
   }, [location]);
 
   const handleLinkClick = () => {
     setIsMenuOpen(false);
-    setMobileLevel1Open(false);
-    setMobileLevel2Active(null);
-    setMobileSolutionsOpen(false);
+    setOpenMenu(null);
     setDropdownForceClose(true); // Force close desktop dropdown on click
   };
 
   // Reset submenus when hamburger collapses/opens
   useEffect(() => {
     if (!isMenuOpen) {
-      setMobileLevel1Open(false);
-      setMobileLevel2Active(null);
-      setMobileSolutionsOpen(false);
+      setOpenMenu(null);
     }
   }, [isMenuOpen]);
 
-  const [productMenu, setProductMenu] = useState([]);
+  const handleMobileToggle = (key, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpenMenu(openMenu === key ? null : key);
+  };
 
-  useEffect(() => {
-    const loadCategories = () => {
-      const dynamicCategories = getProductCategories();
-      const mapped = Object.entries(dynamicCategories).map(([slug, catInfo]) => {
-        return {
-          name: catInfo.name,
-          slug: slug,
-          sub: Object.entries(catInfo.subcategories || {}).map(([subSlug, subName]) => ({
-            name: subName,
-            slug: subSlug
-          }))
-        };
-      });
-      setProductMenu(mapped);
+  // Chlorine Dioxide single-page anchor navigation. If already on the
+  // /chlorine-dioxide route we scroll straight to the section; otherwise we
+  // navigate there first and scroll once the page has rendered.
+  const handleSectionClick = (target) => {
+    setIsMenuOpen(false);
+    setOpenMenu(null);
+    setDropdownForceClose(true);
+
+    const doScroll = () => {
+      const el = document.getElementById(target);
+      if (el) {
+        const header = document.querySelector('.site-header');
+        const offset = header ? header.getBoundingClientRect().height + 16 : 90;
+        const top = el.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
     };
 
-    loadCategories();
-    window.addEventListener('categoriesUpdated', loadCategories);
-    return () => window.removeEventListener('categoriesUpdated', loadCategories);
-  }, []);
-
-  const handleMobileL1Toggle = (e) => {
-    e.preventDefault();
-    setMobileLevel1Open(!mobileLevel1Open);
-    setMobileLevel2Active(null);
+    if (location.pathname === '/chlorine-dioxide') {
+      doScroll();
+    } else {
+      navigate('/chlorine-dioxide');
+      setTimeout(doScroll, 150);
+    }
   };
 
-  const handleMobileL2Toggle = (idx, e) => {
-    e.preventDefault();
-    setMobileLevel2Active(mobileLevel2Active === idx ? null : idx);
-  };
+  // Single-page dropdown navigation structure (anchor targets on /chlorine-dioxide)
+  const navMenus = [
+    {
+      key: 'chlorine',
+      label: 'Chlorine Dioxide',
+      path: '/chlorine-dioxide',
+      items: [
+        { label: 'Overview', target: 'overview' },
+        { label: 'What is ClO2?', target: 'introduction' },
+        { label: 'Key Features', target: 'benefits' },
+        { label: 'Certifications', target: 'certifications' }
+      ]
+    },
+    {
+      key: 'introduction',
+      label: 'Introduction',
+      path: '/chlorine-dioxide',
+      items: [
+        { label: 'Overview', target: 'overview' },
+        { label: 'How It Works', target: 'how-it-works' },
+        { label: 'Benefits', target: 'benefits' },
+        { label: 'Safety Information', target: 'safety' },
+        { label: 'FAQs', target: 'faqs' }
+      ]
+    },
+    {
+      key: 'products',
+      label: 'Products',
+      path: '/chlorine-dioxide',
+      items: [
+        { label: 'Chlorine Dioxide Liquid', target: 'products-liquid' },
+        { label: 'Chlorine Dioxide Tablets', target: 'products-tablets' },
+        { label: 'Chlorine Dioxide Powder', target: 'products-powder' },
+        { label: 'Chlorine Dioxide Gel', target: 'products-gel' },
+        { label: 'Chlorine Dioxide Sachets', target: 'products-sachets' },
+        { label: 'Chlorine Dioxide Generator', target: 'products-generator' }
+      ]
+    },
+    {
+      key: 'applications',
+      label: 'Applications',
+      path: '/chlorine-dioxide',
+      items: [
+        { label: 'Drinking Water Treatment', target: 'app-drinking-water' },
+        { label: 'Wastewater Treatment', target: 'app-wastewater' },
+        { label: 'Food & Beverage', target: 'app-food-beverage' },
+        { label: 'Aquaculture', target: 'app-aquaculture' },
+        { label: 'Healthcare & Hospitals', target: 'app-healthcare' },
+        { label: 'Cooling Towers', target: 'app-cooling-towers' },
+        { label: 'Industrial Water Treatment', target: 'app-industrial-water' },
+        { label: 'Surface & Equipment Disinfection', target: 'app-surface-disinfection' }
+      ]
+    }
+  ];
 
   return (
     <>
@@ -133,142 +178,48 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Navigation Links Menu */}
+          {/* Navigation Links Menu - Chlorine Dioxide single-page dropdowns */}
           <nav className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
-            {/* 1. Home */}
-            <NavLink to="/" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-              Home
-            </NavLink>
+            {navMenus.map((menu) => (
+              <div
+                key={menu.key}
+                className={`nav-dropdown-wrapper ${dropdownForceClose ? 'force-hide-dropdown' : ''}`}
+                onMouseEnter={() => setDropdownForceClose(false)}
+                onMouseLeave={() => setDropdownForceClose(false)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <NavLink
+                    to={menu.path}
+                    className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                    onClick={() => handleSectionClick(menu.items[0].target)}
+                    end={true}
+                  >
+                    {menu.label}
+                  </NavLink>
+                  <button
+                    className="dropdown-toggle-arrow"
+                    onClick={(e) => handleMobileToggle(menu.key, e)}
+                    style={{ display: 'inline-block', border: 'none', background: 'none' }}
+                    aria-label={`Toggle ${menu.label} Submenu`}
+                  >
+                    <i className={`fa-solid ${openMenu === menu.key ? 'fa-chevron-up' : 'fa-chevron-down'}`} style={{ fontSize: '0.7rem' }}></i>
+                  </button>
+                </div>
 
-            {/* 2. About */}
-            <NavLink to="/about" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-              About
-            </NavLink>
-
-            {/* 3. Products Dropdown */}
-            <div
-              className={`nav-dropdown-wrapper ${dropdownForceClose ? 'force-hide-dropdown' : ''}`}
-              onMouseEnter={() => setDropdownForceClose(false)}
-              onMouseLeave={() => setDropdownForceClose(false)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <NavLink to="/products" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-                  Products
-                </NavLink>
-                <button
-                  className="dropdown-toggle-arrow"
-                  onClick={handleMobileL1Toggle}
-                  style={{ display: 'inline-block', border: 'none', background: 'none' }}
-                  aria-label="Toggle Products Submenu"
-                >
-                  <i className="fa-solid fa-chevron-down" style={{ fontSize: '0.7rem' }}></i>
-                </button>
+                <div className={`nav-dropdown-menu flyout-l1 ${openMenu === menu.key ? 'mobile-expanded' : ''}`}>
+                  {menu.items.map((item) => (
+                    <button
+                      key={item.target}
+                      className="dropdown-item"
+                      onClick={() => handleSectionClick(item.target)}
+                      style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-
-              {/* LEVEL 1: Dropdown Categories */}
-              <div className={`nav-dropdown-menu flyout-l1 ${mobileLevel1Open ? 'mobile-expanded' : ''}`}>
-                {productMenu.map((cat, idx) => {
-                  const hasSub = cat.sub && cat.sub.length > 0;
-                  return (
-                    <div key={idx} className={`dropdown-submenu-wrapper ${hasSub ? 'has-children' : ''}`}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                        <Link
-                          to={`/products/${cat.slug}`}
-                          className="dropdown-item dropdown-item-with-arrow"
-                          style={{ flexGrow: 1 }}
-                          onClick={handleLinkClick}
-                        >
-                          {cat.name}
-                        </Link>
-                        {hasSub && (
-                          <button
-                            className="mobile-l2-toggle"
-                            onClick={(e) => handleMobileL2Toggle(idx, e)}
-                            style={{ padding: '0.5rem 1rem', background: 'none', border: 'none', cursor: 'pointer' }}
-                            aria-label="Toggle Subcategory List"
-                          >
-                            <i className={`fa-solid ${mobileLevel2Active === idx ? 'fa-chevron-up' : 'fa-chevron-right'}`} style={{ fontSize: '0.65rem' }}></i>
-                          </button>
-                        )}
-                      </div>
-
-                      {/* LEVEL 2: Dropdown Subcategories */}
-                      {hasSub && (
-                        <div className={`dropdown-submenu-menu flyout-l2 ${mobileLevel2Active === idx ? 'mobile-l2-expanded' : ''}`}>
-                          {cat.sub.map((subItem, sIdx) => (
-                            <Link
-                              key={sIdx}
-                              to={`/products/${subItem.slug}`}
-                              className="dropdown-item"
-                              style={{ paddingLeft: '2rem' }}
-                              onClick={handleLinkClick}
-                            >
-                              {subItem.name}
-                            </Link>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 4. Solutions Dropdown */}
-            <div
-              className={`nav-dropdown-wrapper ${dropdownForceClose ? 'force-hide-dropdown' : ''}`}
-              onMouseEnter={() => setDropdownForceClose(false)}
-              onMouseLeave={() => setDropdownForceClose(false)}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <NavLink to="/chlorine-dioxide" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-                  Solutions
-                </NavLink>
-                <button
-                  className="dropdown-toggle-arrow"
-                  onClick={(e) => { e.preventDefault(); setMobileSolutionsOpen(!mobileSolutionsOpen); }}
-                  style={{ display: 'inline-block', border: 'none', background: 'none' }}
-                  aria-label="Toggle Solutions Submenu"
-                >
-                  <i className="fa-solid fa-chevron-down" style={{ fontSize: '0.7rem' }}></i>
-                </button>
-              </div>
-
-              <div className={`nav-dropdown-menu flyout-l1 ${mobileSolutionsOpen ? 'mobile-expanded' : ''}`}>
-                <Link to="/chlorine-dioxide" className="dropdown-item" onClick={handleLinkClick}>
-                  Chlorine Dioxide (ClO2)
-                </Link>
-                <Link to="/oem" className="dropdown-item" onClick={handleLinkClick}>
-                  OEM & Private Labeling
-                </Link>
-                <Link to="/products/water-treatment" className="dropdown-item" onClick={handleLinkClick}>
-                  Water & Wastewater Treatment
-                </Link>
-                <Link to="/products/floor-care" className="dropdown-item" onClick={handleLinkClick}>
-                  Industrial Sanitation & Hygiene
-                </Link>
-              </div>
-            </div>
-
-            {/* 5. Industries */}
-            <NavLink to="/industries" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-              Industries
-            </NavLink>
-
-            {/* 6. Resources */}
-            <NavLink to="/resources" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-              Resources
-            </NavLink>
-
-            {/* 7. Blogs */}
-            <NavLink to="/blog" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-              Blogs
-            </NavLink>
-
-            {/* 8. Contact */}
-            <NavLink to="/contact" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={handleLinkClick}>
-              Contact
-            </NavLink>
+            ))}
 
             {/* Mobile-only CTA */}
             <button
