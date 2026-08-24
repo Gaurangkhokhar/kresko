@@ -178,18 +178,8 @@ export default function Navbar() {
                     onClick={() => handleNavigate({ path: '/about' })}
                     {...dropdownProps('about')}
                   >
-                    <DropdownMenu open={openKey === 'about'} className="navbar__simple" onMouseLeave={scheduleClose}>
-                      {aboutMenu.map((item) => (
-                        <button
-                          key={item.label}
-                          type="button"
-                          className="navbar__nested-item"
-                          onClick={() => handleNavigate(item)}
-                          role="menuitem"
-                        >
-                          {item.label}
-                        </button>
-                      ))}
+                    <DropdownMenu open={openKey === 'about'} onMouseLeave={scheduleClose}>
+                      <SolutionsMenu menu={aboutMenu} onNavigate={handleNavigate} />
                     </DropdownMenu>
                   </NavItem>
                 );

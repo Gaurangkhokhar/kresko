@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { getProducts, getProductCategories, saveEnquiry } from '../utils/storage';
 import ProductImage from '../components/ProductImage';
+
+// Tabs that can be deep-linked via ?tab= (e.g. /products/cat/id?tab=specs)
+const VALID_TABS = ['desc', 'specs', 'apps', 'docs'];
 
 export default function ProductDetail() {
   const [categories, setCategories] = useState(getProductCategories());
   const { categoryId, productId } = useParams();
+  const [searchParams] = useSearchParams();
 
   const [product, setProduct] = useState(null);
   const [categoryName, setCategoryName] = useState('');
 
-  // Interactive UI States
-  const [activeTab, setActiveTab] = useState('desc');
+  // Interactive UI States — initial tab can be set via ?tab= query param
+  const requestedTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(VALID_TABS.includes(requestedTab) ? requestedTab : 'desc');
   const [activeView, setActiveView] = useState('main');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedPack, setSelectedPack] = useState('');

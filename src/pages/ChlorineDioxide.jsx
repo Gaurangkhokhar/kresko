@@ -214,6 +214,17 @@ export default function ChlorineDioxide() {
                 <a href="#products" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#fff', borderColor: 'rgba(255,255,255,0.5)' }}><i className="fa-solid fa-flask"></i> Explore Products</a>
               </div>
             </div>
+            <div style={{
+              borderRadius: '16px', overflow: 'hidden', minHeight: '380px',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.45)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              backgroundColor: '#1a2a4a'
+            }}>
+              <Img
+                src="https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&w=1000&q=70"
+                alt="Chlorine Dioxide water treatment and disinfection"
+              />
+            </div>
           </div>
         </div>
       </section>

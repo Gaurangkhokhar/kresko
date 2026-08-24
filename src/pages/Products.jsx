@@ -409,31 +409,60 @@ export default function Products() {
 
                         </div>
 
-                        {/* Elevated CTA Button */}
-                        <Link
-                          to={`/products/${p.category}/${p.id || p._id}`}
-                          className="btn btn-primary"
-                          style={{
-                            width: '100%',
-                            borderRadius: '10px',
-                            background: 'linear-gradient(135deg, #1b2a47 0%, #0f172a 100%)',
-                            borderColor: '#1b2a47',
-                            padding: '0.85rem 1rem',
-                            fontSize: '0.86rem',
-                            textAlign: 'center',
-                            fontWeight: '800',
-                            letterSpacing: '0.4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.6rem',
-                            boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
-                            transition: 'all 0.25s ease'
-                          }}
-                        >
-                          <span>View Product Specifications & TDS / COA Sheets</span>
-                          <i className="fa-solid fa-arrow-right" style={{ fontSize: '0.82rem', color: '#f8fafc' }}></i>
-                        </Link>
+                        {/* Two Separate CTA Buttons: Specifications & TDS/COA */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                          {/* Button 1 → opens the Product Specifications tab on the detail page */}
+                          <Link
+                            to={`/products/${p.category}/${p.id || p._id}?tab=specs`}
+                            className="btn btn-primary"
+                            style={{
+                              borderRadius: '10px',
+                              background: 'linear-gradient(135deg, #1b2a47 0%, #0f172a 100%)',
+                              borderColor: '#1b2a47',
+                              padding: '0.8rem 0.6rem',
+                              fontSize: '0.78rem',
+                              textAlign: 'center',
+                              fontWeight: '800',
+                              letterSpacing: '0.3px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '0.35rem',
+                              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
+                              transition: 'all 0.25s ease'
+                            }}
+                          >
+                            <i className="fa-solid fa-clipboard-list" style={{ fontSize: '0.95rem', color: '#7dd3fc' }}></i>
+                            <span>Product Specifications</span>
+                          </Link>
+
+                          {/* Button 2 → opens the Documents (TDS / COA / SDS) tab on the detail page */}
+                          <Link
+                            to={`/products/${p.category}/${p.id || p._id}?tab=docs`}
+                            className="btn btn-primary"
+                            style={{
+                              borderRadius: '10px',
+                              background: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)',
+                              borderColor: '#dc2626',
+                              padding: '0.8rem 0.6rem',
+                              fontSize: '0.78rem',
+                              textAlign: 'center',
+                              fontWeight: '800',
+                              letterSpacing: '0.3px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '0.35rem',
+                              boxShadow: '0 4px 14px rgba(153, 27, 27, 0.25)',
+                              transition: 'all 0.25s ease'
+                            }}
+                          >
+                            <i className="fa-solid fa-file-shield" style={{ fontSize: '0.95rem', color: '#fecaca' }}></i>
+                            <span>TDS / COA Sheets</span>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
