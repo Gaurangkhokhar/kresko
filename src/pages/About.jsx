@@ -1,15 +1,30 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import EditableText from '../components/EditableText';
+import { INDUSTRIES_SERVED } from '../data/industries';
 
 export default function About() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('profile');
+
+  // Navigate to the Industries We Serve page
+  const goToIndustries = () => navigate('/industries');
+
+  // Allow deep-linking to a tab via /about?tab=<id> (used by the navbar menu)
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && tabs.some(t => t.id === tabParam)) {
+      setActiveSection(tabParam);
+    }
+  }, [searchParams]);
 
   const tabs = [
     { id: 'profile', label: 'Company Profile', icon: 'fa-building' },
     { id: 'vision', label: 'Vision & Mission', icon: 'fa-eye' },
     { id: 'infrastructure', label: 'Infrastructure', icon: 'fa-industry' },
-    { id: 'quality', label: 'Quality Policy', icon: 'fa-shield-halved' }
+    { id: 'quality', label: 'Quality Policy', icon: 'fa-shield-halved' },
+    { id: 'industries', label: 'Industries We Serve', icon: 'fa-globe' }
   ];
 
   return (
@@ -33,7 +48,7 @@ export default function About() {
             {tabs.map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveSection(tab.id)}
+                onClick={() => { setActiveSection(tab.id); setSearchParams(tab.id === 'profile' ? {} : { tab: tab.id }, { replace: true }); }}
                 className={`btn ${activeSection === tab.id ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '30px', padding: '0.75rem 1.5rem' }}
               >
@@ -178,6 +193,67 @@ export default function About() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* 5. Industries We Serve */}
+            {activeSection === 'industries' && (
+              <div className="fade-in">
+                <h3 style={{ fontSize: '2rem', color: 'var(--color-primary)', marginBottom: '1.5rem', borderBottom: '2px solid var(--color-border)', paddingBottom: '0.75rem' }}>
+                  Industries We Serve
+                </h3>
+                <p style={{ marginBottom: '1.5rem', lineHeight: '1.7' }}>
+                  KRESKO Chemicals supplies premium concentrates and formulations trusted across a wide range of
+                  industries — from household cleaning brands to large industrial and institutional facilities.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                  {INDUSTRIES_SERVED.map(ind => (
+                    <div
+                      key={ind.id}
+                      className="industries-card"
+                      onClick={goToIndustries}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter') goToIndustries(); }}
+                      style={{ height: '300px', cursor: 'pointer', transition: 'transform 0.25s ease' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; }}
+                    >
+                      {/* Background image */}
+                      <img src={ind.image} alt={ind.name} />
+
+                      {/* Content Container */}
+                      <div className="industries-card-content" style={{ zIndex: 3 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                          <div style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '4px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '1rem'
+                          }}>
+                            <i className={`fa-solid ${ind.icon}`}></i>
+                          </div>
+                          <h4 style={{ color: '#ffffff', fontSize: '1.15rem', margin: 0, fontWeight: 700 }}>{ind.name}</h4>
+                        </div>
+                        <p style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '0.85rem', lineHeight: '1.6', margin: 0 }}>{ind.desc}</p>
+                        <span style={{ color: '#ffffff', fontSize: '0.78rem', fontWeight: 700, marginTop: '0.6rem', display: 'inline-block', opacity: 0.9 }}>
+                          View Details <i className="fa-solid fa-arrow-right" style={{ fontSize: '0.7rem', marginLeft: '0.25rem' }}></i>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ textAlign: 'center', marginTop: '2rem' }}>
+                  <button type="button" onClick={goToIndustries} className="btn btn-primary">
+                    Explore All Served Sectors <i className="fa-solid fa-arrow-right" style={{ marginLeft: '0.4rem' }}></i>
+                  </button>
                 </div>
               </div>
             )}

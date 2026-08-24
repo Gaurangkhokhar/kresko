@@ -17,7 +17,11 @@ import Oem from './pages/Oem';
 import Facility from './pages/Facility';
 import Certifications from './pages/Certifications';
 import Gallery from './pages/Gallery';
+import Events from './pages/Events';
 import Resources from './pages/Resources';
+import RawMaterial from './pages/RawMaterial';
+import HerbalProducts from './pages/HerbalProducts';
+import Careers from './pages/Careers';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import Contact from './pages/Contact';
@@ -61,7 +65,11 @@ export default function App() {
             <Route path="/facility" element={<Facility />} />
             <Route path="/certifications" element={<Certifications />} />
             <Route path="/gallery" element={<Gallery />} />
+            <Route path="/events" element={<Events />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/raw-material" element={<RawMaterial />} />
+            <Route path="/herbal-products" element={<HerbalProducts />} />
+            <Route path="/careers" element={<Careers />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogPost />} />
             <Route path="/contact" element={<Contact />} />

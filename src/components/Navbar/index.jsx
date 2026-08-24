@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FiPhone, FiMail, FiArrowRight } from 'react-icons/fi';
 import './navbar.css';
-import { navItems, productMenu, solutionsMenu, aboutMenu } from './menuData';
+import { navItems, productMenu, solutionsMenu, aboutMenu, mediaMenu } from './menuData';
 import NavItem from './NavItem';
 import DropdownMenu from './DropdownMenu';
 import ProductMenu from './ProductMenu';
@@ -118,7 +118,7 @@ export default function Navbar() {
             <img src="/images/kresko_logo.png" alt="" />
             <span className="navbar__logo-text">
               <span className="navbar__logo-top">KRESKO</span>
-              <span className="navbar__logo-bottom">Chemicals</span>
+              <span className="navbar__logo-bottom">Project Pvt Ltd</span>
             </span>
           </Link>
 
@@ -159,11 +159,27 @@ export default function Navbar() {
                     label={nav.label}
                     open={openKey === 'solutions'}
                     hasDropdown
-                    onClick={() => handleNavigate({ path: '/chlorine-dioxide' })}
+                    onClick={() => handleNavigate({ path: '/products' })}
                     {...dropdownProps('solutions')}
                   >
                     <DropdownMenu open={openKey === 'solutions'} onMouseLeave={scheduleClose}>
-                      <SolutionsMenu menu={solutionsMenu} onNavigate={handleNavigate} />
+                      <ProductMenu menu={solutionsMenu} onNavigate={handleNavigate} />
+                    </DropdownMenu>
+                  </NavItem>
+                );
+              }
+              if (nav.type === 'media') {
+                return (
+                  <NavItem
+                    key={nav.key}
+                    label={nav.label}
+                    open={openKey === 'media'}
+                    hasDropdown
+                    onClick={() => handleNavigate({ path: '/gallery' })}
+                    {...dropdownProps('media')}
+                  >
+                    <DropdownMenu open={openKey === 'media'} onMouseLeave={scheduleClose}>
+                      <SolutionsMenu menu={mediaMenu} onNavigate={handleNavigate} />
                     </DropdownMenu>
                   </NavItem>
                 );

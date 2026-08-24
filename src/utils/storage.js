@@ -17,116 +17,169 @@ export const PRODUCT_CATEGORIES = {
     name: 'Home Care Concentrates',
     icon: 'fa-home-wind',
     image: '/images/home_care_bg.png',
-    desc: 'Dilutable all-purpose cleaners, glass shiners, and kitchen degreasers for everyday household and light commercial cleaning.',
+    desc: 'Dilutable all-purpose cleaners, phenyl concentrates, and whiteners for everyday household and light commercial cleaning.',
     subcategories: {
-      'all-purpose': 'All-Purpose Cleaner',
-      'glass-shine': 'Glass & Surface Shine',
-      'kitchen-degreaser': 'Kitchen Degreaser'
-    }
-  },
-  'personal-care': {
-    name: 'Personal Care Concentrates',
-    icon: 'fa-hand-holding-heart',
-    image: '/images/personal_care_bg.png',
-    desc: 'Concentrated hand washes, shampoos, and body washes enriched with skin-conditioning agents and premium fragrance retention.',
-    subcategories: {
-      'hand-wash': 'Hand Wash & Shampoo',
-      'body-lotions': 'Body Lotions & Lather'
+      'multipurpose-cleaner-5x': 'Multipurpose Cleaner Concentrate 5X',
+      'white-phenyl-30x': 'White Phenyl Concentrate 30X',
+      'flavored-phenyl-30x': 'Flavored Phenyl Concentrate 30X',
+      'black-phenyl-14x': 'Black Phenyl Concentrate 14X',
+      'fabric-whitener-2-5x': 'Fabric Whitener 2.5X',
+      'dish-whitener-2-5x': 'Dish Whitener 2.5X'
     }
   },
   'laundry-care': {
-    name: 'Laundry & Fabric Care',
+    name: 'Laundry Care Concentrates',
     icon: 'fa-washer-bath',
     image: '/images/laundry_care_bg.png',
-    desc: 'High-load laundry detergent concentrates, fabric softeners, and oxygen-based whiteners for commercial laundries.',
+    desc: 'High-load liquid laundry detergent concentrates, fabric washes, and comfort softeners for commercial laundries.',
     subcategories: {
-      'laundry-detergent': 'Laundry Detergent Liquid',
-      'fabric-softener': 'Fabric Softener Concentrate',
-      'oxygen-whitener': 'Active Oxygen Whitener'
+      'liquid-laundry-detergent-4x': 'Liquid Laundry Detergent Concentrate 4X',
+      'liquid-laundry-detergent-6x': 'Liquid Laundry Detergent Concentrate 6X',
+      'fabric-wash-4x': 'Fabric Wash Concentrate 4X',
+      'fabric-comfort-4x': 'Fabric Comfort Concentrate 4X'
     }
   },
   'kitchen-care': {
     name: 'Kitchen Care Concentrates',
     icon: 'fa-utensils',
     image: '/images/kitchen_care_bg.png',
-    desc: 'Dishwashing gel concentrates, heavy-duty degreasers, and appliance cleaners for restaurant and institutional kitchens.',
+    desc: 'Dishwash gel concentrates, teepol bases, heavy-duty degreasers, and chimney cleaners for restaurant and institutional kitchens.',
     subcategories: {
-      'dishwash-gel': 'Dishwash Gel Concentrate',
-      'deep-degreaser': 'Deep Kitchen Degreaser'
+      'dish-wash-6x': 'Dish Wash Concentrate 6X',
+      'dish-wash-10x': 'Dish Wash Concentrate 10X',
+      'teepol-5x': 'Teepol Concentrate 5X',
+      'kitchen-degreaser-5x': 'Kitchen Degreaser 5X',
+      'chimney-cleaner-5x': 'Chimney Cleaner 5X'
     }
   },
   'floor-care': {
     name: 'Floor Care Concentrates',
     icon: 'fa-mop',
     image: '/images/floor_care_bg.png',
-    desc: 'Concentrated floor cleaners, phenyl disinfectants, and buffing compounds for high-traffic commercial and industrial floors.',
+    desc: 'Super-concentrated floor cleaners, phenyl disinfectant bases, and herbal floor cleaners for high-traffic commercial floors.',
     subcategories: {
-      'floor-cleaner': 'Floor Cleaner Concentrate',
-      'white-phenyl': 'White Phenyl (MPAV)',
-      'black-phenyl': 'Black Phenyl Disinfectant'
+      'floor-cleaner-super-30x': 'Floor Cleaner Super Concentrate 30X',
+      'floor-cleaner-pvl-30x': 'Floor Cleaner PVL 30X',
+      'floor-cleaner-psv-30x': 'Floor Cleaner PSV 30X',
+      'floor-cleaner-pscv-30x': 'Floor Cleaner PSCV 30X',
+      'herbal-floor-cleaner': 'Herbal Floor Cleaner'
     }
   },
   'bathroom-care': {
-    name: 'Bathroom & Toilet Care',
+    name: 'Bathroom Care Concentrates',
     icon: 'fa-toilet-paper',
     image: '/images/bathroom_care_bg.png',
-    desc: 'Acidic and alkaline toilet bowl cleaners, bathroom sanitizers, and descaling formulations for hard water stains.',
+    desc: 'Acidic, organic, and non-acidic toilet cleaner concentrates plus descaling formulations for hard water stains.',
     subcategories: {
-      'toilet-cleaner': 'Toilet Cleaner Concentrate',
-      'bathroom-cleaner': 'Bathroom Cleaner Spray'
+      'toilet-cleaner-6x-blue': 'Toilet Cleaner Concentrate 6X (Blue)',
+      'toilet-cleaner-6x-red': 'Toilet Cleaner Concentrate 6X (Red)',
+      'organic-toilet-cleaner-31x': 'Organic Toilet Cleaner Concentrate 31X',
+      'toilet-cleaner-without-acid': 'Toilet Cleaner (Without Acid)',
+      'scale-remover': 'Scale Remover'
     }
   },
   'glass-care': {
-    name: 'Glass & Window Care',
+    name: 'Glass Care Concentrates',
     icon: 'fa-windshield',
     image: '/images/glass_care_bg.png',
-    desc: 'Streak-free glass cleaners, window concentrates, and surface prep formulations for crystal-clear shine.',
+    desc: 'Streak-free glass cleaning concentrate for crystal-clear windows, mirrors, and smooth surfaces.',
     subcategories: {
-      'glass-cleaner': 'Glass Cleaner Concentrate',
-      'window-shine': 'Window Shine Solution'
+      'glass-cleaner-35x': 'Glass Cleaner Concentrate 35X'
     }
   },
-  'car-care': {
-    name: 'Car Care Concentrates',
-    icon: 'fa-car',
-    image: '/images/car_care_bg.png',
-    desc: 'Automotive shampoos, wheel cleaners, and protective finishes safe for paint, chrome, and upholstery.',
+  'personal-care': {
+    name: 'Personal Care Concentrates',
+    icon: 'fa-hand-holding-heart',
+    image: '/images/personal_care_bg.png',
+    desc: 'Concentrated hand washes, shampoos, shower gels, sanitizers, and thickeners with premium fragrance retention.',
     subcategories: {
-      'car-shampoo': 'Car Wash Shampoo',
-      'wheel-cleaner': 'Wheel & Tyre Cleaner',
-      'wax-shine': 'Car Wax Protective Concentrate'
+      'hand-wash-6x': 'Hand Wash Concentrate 6X',
+      'hand-wash-10x': 'Hand Wash Concentrate 10X',
+      'powder-hand-wash-23x': 'Powder Hand Wash 23X',
+      'foam-hand-wash': 'Foam Hand Wash',
+      'magical-hand-wash': 'Magical Hand Wash',
+      'shampoo-concentrate': 'Shampoo Concentrate',
+      'shower-gel-concentrate': 'Shower Gel Concentrate',
+      'hand-sanitizer': 'Hand Sanitizer',
+      'hand-wash-thickener': 'Hand Wash Thickener'
     }
   },
   'air-care': {
-    name: 'Air Fresheners & Ambience',
+    name: 'Air Care Products',
     icon: 'fa-smog',
     image: '/images/air_fresheners_bg.png',
-    desc: 'Fragrance concentrates, vaporizer solutions, and ambient scenting systems with long-lasting odor neutralization.',
+    desc: 'Fragrance concentrates, freshener cakes, sanitizer gels and sachets for long-lasting odor neutralization.',
     subcategories: {
-      'air-freshener': 'Aerosol Air Freshener',
-      'room-spray': 'Room & Fabric Refresh Spray',
-      'vaporizer': 'Vaporizer Refill Concentrate'
+      'air-freshener-concentrate': 'Air Freshener Concentrate',
+      'air-freshener-cake': 'Air Freshener Cake',
+      'air-sanitizer-gel': 'Air Sanitizer Gel',
+      'air-sanitizer-sachet': 'Air Sanitizer Sachet',
+      'naphthalene-balls': 'Naphthalene Balls'
+    }
+  },
+  'car-care': {
+    name: 'Car Care Products',
+    icon: 'fa-car',
+    image: '/images/car_care_bg.png',
+    desc: 'Automotive shampoos, polish concentrates, and wax formulations safe for paint, chrome, and upholstery.',
+    subcategories: {
+      'car-shampoo-6x': 'Car Shampoo Concentrate 6X',
+      'car-polish-2-5x': 'Car Polish Concentrate 2.5X',
+      'wax-polish-concentrate': 'Wax Polish Concentrate'
+    }
+  },
+  'metal-care': {
+    name: 'Metal Care Products',
+    icon: 'fa-flask',
+    image: '/images/specialty_products_bg.png',
+    desc: 'Metal and wood polish concentrates plus RapidGlow™ shining powders that restore brilliance to utensils and surfaces.',
+    subcategories: {
+      'metal-polish-concentrate': 'Metal Polish Concentrate',
+      'wood-polish-concentrate': 'Wood Polish Concentrate',
+      'metal-shining-powder': 'Metal Shining Powder',
+      'rapidglow-50g': 'RapidGlow™ Metal Shining Powder (50 g)',
+      'rapidglow-100g': 'RapidGlow™ Metal Shining Powder (100 g)',
+      'rapidglow-150g-200g': 'RapidGlow™ Metal Shining Powder (150 g / 200 g)'
     }
   },
   'pest-control': {
-    name: 'Insect Repellent & Pest Control',
+    name: 'Pest Control Products',
     icon: 'fa-bug',
     image: '/images/pest_control_bg.png',
-    desc: 'Natural and synthetic insect repellents, mosquito coil blends, and crawling insect formulations for commercial use.',
+    desc: 'Mosquito repellents, insect sprays, and RapidPunch™ chalk formulations for commercial pest control brands.',
     subcategories: {
-      'insect-repellent': 'Insect Repellent Liquid',
-      'mosquito-coil': 'Mosquito Coil Blend'
+      'mosquito-repellent-concentrate': 'Mosquito Repellent Concentrate',
+      'mosquito-roll-on': 'Mosquito Roll-On',
+      'mosquito-vaporizer-liquid': 'Mosquito Vaporizer Liquid',
+      'cockroach-spray': 'Cockroach Spray',
+      'fly-spray': 'Fly Spray',
+      'ant-spray': 'Ant Spray',
+      'all-insect-spray': 'All Insect Spray',
+      'rapidpunch-chalk': 'RapidPunch™ Chalk'
     }
   },
   'specialty-products': {
-    name: 'Specialized Solutions',
+    name: 'Specialty Products',
     icon: 'fa-flask',
     image: '/images/specialty_products_bg.png',
-    desc: 'Specialty chemicals including descalers, polishing powders, and custom OEM formulations for specific industrial applications.',
+    desc: 'Thickeners, descaling powders, whiteners, and scale removers for specialized manufacturing applications.',
     subcategories: {
-      'descaler': 'Industrial Descaler',
-      'shining-powder': 'Shining Powder',
-      'chemical-drum': 'Bulk Chemical Drums'
+      'phenyl-thickener': 'Phenyl Thickener',
+      'hand-wash-thickener': 'Hand Wash Thickener',
+      'washing-machine-descaling-powder': 'Washing Machine Descaling Powder',
+      'scale-remover': 'Scale Remover',
+      'fabric-whitener': 'Fabric Whitener',
+      'dish-whitener': 'Dish Whitener'
+    }
+  },
+  'powder-to-liquid': {
+    name: 'Powder to Liquid Products',
+    icon: 'fa-vial',
+    image: '/images/specialty_products_bg.png',
+    desc: 'Cost-effective powder-to-liquid conversion formulations for hand wash and toilet cleaner manufacturing.',
+    subcategories: {
+      'powder-hand-wash': 'Powder Hand Wash',
+      'toilet-cleaner-powder-31x': 'Toilet Cleaner Powder 31X'
     }
   }
 };

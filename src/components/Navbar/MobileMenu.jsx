@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiChevronDown, FiX, FiArrowRight } from 'react-icons/fi';
-import { productMenu, solutionsMenu, aboutMenu } from './menuData';
+import { productMenu, solutionsMenu, aboutMenu, mediaMenu } from './menuData';
 import ProductMenu from './ProductMenu';
 
 /**
@@ -41,21 +41,21 @@ export default function MobileMenu({ open, onClose, onNavigate }) {
           Home
         </button>
 
-                {/* Our Products accordion — reuses the same 4-group menu as desktop */}
+                {/* Chlorine Dioxide accordion — reuses the same 4-group menu as desktop */}
         <button
           type="button"
           className={`navbar__mobile-acc ${accordion === 'products' ? 'is-open' : ''}`}
           onClick={() => toggle('products')}
           aria-expanded={accordion === 'products'}
         >
-          Our Products
+          Chlorine Dioxide
           <FiChevronDown className="chev" aria-hidden="true" />
         </button>
         {accordion === 'products' && (
           <ProductMenu menu={productMenu} onNavigate={onNavigate} />
         )}
 
-        {/* Our Solutions accordion */}
+        {/* Our Solutions accordion — full catalog by category */}
         <button
           type="button"
           className={`navbar__mobile-acc ${accordion === 'solutions' ? 'is-open' : ''}`}
@@ -67,18 +67,50 @@ export default function MobileMenu({ open, onClose, onNavigate }) {
         </button>
         {accordion === 'solutions' && (
           <div className="navbar__mobile-sub">
-            {solutionsMenu.map((item) => (
+            {solutionsMenu.map((group) => (
+              <div key={group.label}>
+                <button type="button" onClick={() => onNavigate({ path: group.path })}>
+                  <FiArrowRight size={12} aria-hidden="true" />
+                  {group.label}
+                </button>
+                {group.children.map((child) => (
+                  <div key={child.label} style={{ paddingLeft: '1rem' }}>
+                    {renderLeaf(child)}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button type="button" className="navbar__mobile-item" onClick={() => onNavigate({ path: '/raw-material' })}>
+          Raw Material
+        </button>
+
+        <button type="button" className="navbar__mobile-item" onClick={() => onNavigate({ path: '/herbal-products' })}>
+          Herbal Products
+        </button>
+
+        {/* Media accordion */}
+        <button
+          type="button"
+          className={`navbar__mobile-acc ${accordion === 'media' ? 'is-open' : ''}`}
+          onClick={() => toggle('media')}
+          aria-expanded={accordion === 'media'}
+        >
+          Media
+          <FiChevronDown className="chev" aria-hidden="true" />
+        </button>
+        {accordion === 'media' && (
+          <div className="navbar__mobile-sub">
+            {mediaMenu.map((item) => (
               <div key={item.label}>{renderLeaf(item)}</div>
             ))}
           </div>
         )}
 
-        <button type="button" className="navbar__mobile-item" onClick={() => onNavigate({ path: '/resources' })}>
-          Case Studies
-        </button>
-
-        <button type="button" className="navbar__mobile-item" onClick={() => onNavigate({ path: '/blog' })}>
-          Blogs
+        <button type="button" className="navbar__mobile-item" onClick={() => onNavigate({ path: '/careers' })}>
+          Career
         </button>
 
         {/* About Us accordion */}
