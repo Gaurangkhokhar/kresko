@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { getProducts, getProductCategories, saveEnquiry } from '../utils/storage';
 import ProductImage from '../components/ProductImage';
+import { handleProductImgError } from '../data/productImageMap';
 
 // Tabs that can be deep-linked via ?tab= (e.g. /products/cat/id?tab=specs)
 const VALID_TABS = ['desc', 'specs', 'apps', 'docs'];
@@ -292,6 +293,7 @@ export default function ProductDetail() {
                 <img
                   src={mainImageUrl}
                   alt={product.title}
+                  onError={(e) => handleProductImgError(e, product.title, product.id, product.category)}
                   style={{
                     maxHeight: '300px',
                     maxWidth: '100%',

@@ -2667,8 +2667,8 @@ textarea.form-control {
 
 @media (min-width: 1024px) {
   .categories-grid {
-    grid-template-columns: repeat(3, 1fr); /* desktop: 3 per row */
-    gap: 2rem;                            /* 32px */
+    grid-template-columns: repeat(4, 1fr); /* desktop: 4 per row */
+    gap: 1.5rem;                          /* 24px */
   }
 }
 

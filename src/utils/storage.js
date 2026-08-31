@@ -5,6 +5,7 @@ import {
   productsApi,
   resolveImageUrl,
 } from './api';
+import { getPerProductImage } from '../data/productImageMap';
 
 // ─────────────────────────────────────────────────────────────
 //  Product Category & Subcategory Hierarchy
@@ -131,7 +132,7 @@ export const PRODUCT_CATEGORIES = {
   'metal-care': {
     name: 'Metal Care Products',
     icon: 'fa-flask',
-    image: '/images/specialty_products_bg.png',
+    image: '/images/metal_care_bg.png',
     desc: 'Metal and wood polish concentrates plus RapidGlow™ shining powders that restore brilliance to utensils and surfaces.',
     subcategories: {
       'metal-polish-concentrate': 'Metal Polish Concentrate',
@@ -266,6 +267,8 @@ function populateProductDetails(p) {
   } else {
     imagePath = '/images/products/chemical_drum_white.png';
   }
+  // Override with per-product image from /images/products/all-products/ (if mapped)
+  imagePath = getPerProductImage(p.title, p.id) || imagePath;
 
   const finalImage = p.image || imagePath;
   let images = p.images;

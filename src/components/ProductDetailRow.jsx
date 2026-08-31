@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { handleProductImgError } from '../data/productImageMap';
 
 export default function ProductDetailRow({ product, _categoryId, categoryName }) {
   const [activeView, setActiveView] = useState('main');
@@ -98,6 +99,7 @@ export default function ProductDetailRow({ product, _categoryId, categoryName })
             <img
               src={mainImageUrl}
               alt={product.title}
+              onError={(e) => handleProductImgError(e, product.title, product.id, product.category)}
               style={{
                 maxHeight: '260px',
                 maxWidth: '100%',

@@ -1,4 +1,5 @@
 import React from 'react';
+import { getPerProductImage, getCategoryFallbackImage, handleProductImgError } from '../data/productImageMap';
 
 /**
  * Dynamic SVG Product Visual Generator for Kresko Chemicals
@@ -7,9 +8,11 @@ import React from 'react';
 export default function ProductImage({ category, title, image, style }) {
   const pTitle = (title || '').toLowerCase();
 
-  // 0. Resolve to photorealistic generated image if no image path is passed
-  let finalImage = image;
+  // 0. Resolve to per-product photo, then explicit image, then category default
+  let finalImage = image || getPerProductImage(title) || '';
+  const catFallback = getCategoryFallbackImage(title, '', category);
   if (!finalImage || finalImage.trim() === '') {
+    finalImage = catFallback;
     const cat = (category || '').toLowerCase();
     if (cat.includes('floor')) {
       if (pTitle.includes('phenyl') || pTitle.includes('black') || pTitle.includes('pvl') || pTitle.includes('psv') || pTitle.includes('pscv')) {
@@ -36,7 +39,7 @@ export default function ProductImage({ category, title, image, style }) {
 
   if (finalImage && finalImage.trim() !== '') {
     const defaultStyle = { width: '100%', height: '100%', display: 'block', objectFit: 'contain', ...style };
-    return <img src={finalImage} alt={title || 'Product'} style={defaultStyle} className="product-image-static" />;
+    return <img src={finalImage} alt={title || 'Product'} style={defaultStyle} className="product-image-static" onError={(e) => handleProductImgError(e, title, '', category)} />;
   }
   
   // 1. Determine liquid and bottle color gradients based on names and categories
