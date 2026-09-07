@@ -526,6 +526,24 @@ export const heroSlidesApi = {
     return normalizeSlider(slider);
   },
 
+  /** Upload a slider image and its required metadata to the protected endpoint. */
+  uploadImage: async (file, { title, heading, description }) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('title', title || '');
+    formData.append('heading', heading || '');
+    formData.append('description', description || '');
+    const { data } = await api.post('/api/sliders/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    const payload = data && (data.slider || data.data || data);
+    const image = payload && (payload.image || payload.url || payload.imageUrl);
+    if (!image) {
+      throw new Error('Slider image upload response did not include an image URL.');
+    }
+    return resolveSliderImage(image);
+  },
+
   /**
    * Create a slider (admin). Accepts FormData (with image file) or a plain
    * object. Fields map to the backend: title(badge)=tag, heading=title,

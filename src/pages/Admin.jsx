@@ -30,6 +30,7 @@ import {
   categoriesApi,
   blogsApi,
   catalogApi,
+  heroSlidesApi,
   dataUrlToFile,
 } from '../utils/api';
 import ProductImage from '../components/ProductImage';
@@ -250,6 +251,7 @@ export default function Admin() {
 
   // Homepage hero editor states
   const [heroSlides, setHeroSlides] = useState(() => getHeroSlides());
+  const [pendingHeroImages, setPendingHeroImages] = useState({});
   const [heroSuccess, setHeroSuccess] = useState('');
 
   // Enquiries search & details
@@ -716,6 +718,7 @@ export default function Admin() {
       alert('Image too large (max 2 MB). Please use a smaller image or host it and use a URL.');
       return;
     }
+    setPendingHeroImages(prev => ({ ...prev, [idx]: file }));
     const reader = new FileReader();
     reader.onloadend = () => {
       setHeroSlides(prev => prev.map((s, i) => (i === idx ? { ...s, image: reader.result } : s)));
@@ -723,16 +726,37 @@ export default function Admin() {
     reader.readAsDataURL(file);
   };
 
-  const handleSaveHero = (e) => {
+  const handleSaveHero = async (e) => {
     e.preventDefault();
-    const clean = heroSlides.map(s => ({
-      image: s.image || '',
+    setHeroSuccess('Uploading slider images and saving hero content...');
+
+    const uploadedImages = {};
+    try {
+      for (const [idx, file] of Object.entries(pendingHeroImages)) {
+        const slide = heroSlides[Number(idx)];
+        const slideTitle = (slide.title || slide.tag || 'Homepage Slider').trim();
+        uploadedImages[idx] = await heroSlidesApi.uploadImage(file, {
+          title: (slide.tag || slideTitle).trim(),
+          heading: slideTitle,
+          description: (slide.desc || slideTitle).trim(),
+        });
+      }
+    } catch (err) {
+      setHeroSuccess('');
+      alert(`Slider image upload failed: ${err.message || 'Network error'}`);
+      return;
+    }
+
+    const clean = heroSlides.map((s, idx) => ({
+      image: uploadedImages[idx] || s.image || '',
       overlay: s.overlay !== false,
       tag: (s.tag || '').trim(),
       title: (s.title || '').trim(),
       desc: (s.desc || '').trim()
     }));
     saveHeroSlides(clean);
+    setHeroSlides(clean);
+    setPendingHeroImages({});
 
     // Sync inline EditableText values so admin + inline edits stay in sync.
     const savedTexts = JSON.parse(localStorage.getItem('kresko_editable_texts') || '{}');
@@ -783,6 +807,12 @@ export default function Admin() {
       }
       return prev.filter((_, i) => i !== idx);
     });
+    setPendingHeroImages(prev => Object.entries(prev).reduce((next, [key, file]) => {
+      const imageIndex = Number(key);
+      if (imageIndex < idx) next[imageIndex] = file;
+      if (imageIndex > idx) next[imageIndex - 1] = file;
+      return next;
+    }, {}));
   };
 
   const handleAddCategory = async (e) => {

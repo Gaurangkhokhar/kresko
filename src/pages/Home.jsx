@@ -97,10 +97,9 @@ export default function Home() {
   useEffect(() => {
     const loadHeroSlides = async () => {
       // 1) Prefer working slides from the backend (image loadability validated).
-      //    Only adopt when the backend provides a real multi-slide carousel
-      //    (>= 2 usable slides). A lone backend slide would kill the sliding
-      //    effect, so we ignore it and keep the bundled defaults instead.
-      const MIN_SLIDES = 2;
+      //    A single active backend slide is still valid; the controls and
+      //    autoplay naturally disable themselves when there is only one.
+      const MIN_SLIDES = 1;
       try {
         const data = await heroSlidesApi.getAll();
         const raw = Array.isArray(data) ? data : (data && Array.isArray(data.sliders) ? data.sliders : []);
@@ -110,12 +109,12 @@ export default function Home() {
           setCurrentSlide(0);
           return;
         }
-        console.warn('Home: backend hero slides skipped (fewer than ' + MIN_SLIDES + ' loadable slides), using defaults.');
+        console.warn('Home: backend hero slides skipped (no loadable slides), using defaults.');
       } catch (err) {
         console.warn('Home: backend hero slides unavailable, using local defaults:', err);
       }
 
-      // 2) Admin localStorage slides (also image-validated). Same rule applies.
+      // 2) Admin localStorage slides (also image-validated).
       try {
         const { adopted, slides: resolved } = await resolveCandidates(getHeroSlides());
         const isCustom = getHeroSlides() !== DEFAULT_HERO_SLIDES; // only trust stored overrides
@@ -332,7 +331,7 @@ export default function Home() {
             <div style={{ position: 'relative' }}>
               <div style={{ borderRadius: '12px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(15,23,42,0.12)', border: '1px solid #e2e8f0' }}>
                 <img
-                  src="/images/mfg_quality_assurance.png"
+                  src="/images/abutus.jpeg"
                   alt="Kresko Chemicals Manufacturing Plant"
                   style={{ width: '100%', height: '420px', objectFit: 'cover', display: 'block' }}
                   onError={(e) => { e.currentTarget.src = '/images/photo-1528218609959-006f98e6b79e.jpeg'; }}
@@ -550,7 +549,14 @@ export default function Home() {
 
             {/* Card 4 */}
             <div className="industries-card" style={{ height: '360px' }}>
-              <img src="/images/mfg_quality_assurance.png" alt="Quality Assurance" />
+              <img
+                src="/images/abutus.jpeg"
+                alt="Quality Assurance"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = '/images/mfg_quality_assurance.png';
+                }}
+              />
               <div className="industries-card-content" style={{ zIndex: 3 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                   <div style={{
@@ -695,6 +701,11 @@ export default function Home() {
                 <img
                   src={ind.image}
                   alt={ind.name}
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = '/images/abutus.jpeg';
+                  }}
                 />
 
                 {/* Content Container */}
