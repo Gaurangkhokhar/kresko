@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react'
 import fs from 'node:fs'
 import path from 'node:path'
 
+const isVercel = process.env.VERCEL === '1'
+const publicBase = isVercel ? '' : '/kresko'
+
 function prefixPublicAssets() {
   return {
     name: 'prefix-public-assets',
@@ -19,8 +22,7 @@ function prefixPublicAssets() {
       visit(distDir)
       for (const file of files) {
         const content = fs.readFileSync(file, 'utf8')
-        const rewritten = content
-          .replace(/(["'(])\/(images|certificates)\//g, '$1/kresko/$2/')
+        const rewritten = content.replace(/(["'(])\/(images|certificates)\//g, (_match, quote, assetType) => `${quote}${publicBase}/${assetType}/`)
         if (rewritten !== content) fs.writeFileSync(file, rewritten)
       }
     },
@@ -29,6 +31,6 @@ function prefixPublicAssets() {
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/kresko/',
+  base: isVercel ? '/' : '/kresko/',
   plugins: [react(), prefixPublicAssets()],
 })
