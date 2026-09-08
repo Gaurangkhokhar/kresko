@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/kresko", "destination": "/" },
+    { "source": "/kresko/(.*)", "destination": "/$1" }
+  ]
+}
