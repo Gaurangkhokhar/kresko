@@ -222,11 +222,9 @@ export const mediaMenu = [
 export const navItems = [
   { type: 'link', label: 'Home', path: '/', key: 'home' },
   { type: 'simple', label: 'About Us', key: 'about' },
-  { type: 'mega', label: 'Chlorine Dioxide', key: 'products' },
-  { type: 'solutions', label: 'Our Solutions', key: 'solutions' },
-  { type: 'link', label: 'Raw Material', path: '/raw-material', key: 'raw-material' },
-  { type: 'link', label: 'Herbal Products', path: '/herbal-products', key: 'herbal-products' },
-  { type: 'media', label: 'Media', key: 'media' },
+  { type: 'solutions', label: 'All Products', key: 'solutions' },
+  { type: 'link', label: 'Raw Chemicals', path: '/raw-material', key: 'raw-material' },
+  { type: 'link', label: 'Events', path: '/events', key: 'events' },
   { type: 'link', label: 'Career', path: '/careers', key: 'careers' },
   { type: 'link', label: 'Contact Us', path: '/contact', key: 'contact' }
 ];

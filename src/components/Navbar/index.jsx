@@ -114,11 +114,11 @@ export default function Navbar() {
       <div className={`navbar__bar ${scrolled ? 'is-scrolled' : ''}`} ref={barRef}>
         <div className="navbar__inner">
           {/* Logo */}
-          <Link to="/" className="navbar__logo" onClick={() => setMobileOpen(false)} aria-label="Kresko Chemicals home">
-            <img src="/images/kresko_logo.png" alt="" />
+          <Link to="/" className="navbar__logo kresko-brand" onClick={() => setMobileOpen(false)} aria-label="Kresko Chemicals home">
+            <img src="/images/kresko_logo.png" alt="Kresko Chemicals logo" />
             <span className="navbar__logo-text">
               <span className="navbar__logo-top">KRESKO</span>
-              <span className="navbar__logo-bottom">Project Pvt Ltd</span>
+              <span className="navbar__logo-bottom">CHEMICALS</span>
             </span>
           </Link>
 
@@ -207,7 +207,7 @@ export default function Navbar() {
           {/* Desktop right controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <Link to="/contact" className="navbar__cta navbar__cta-desktop">
-              Request a Quote <FiArrowRight aria-hidden="true" />
+              Get Quote <FiArrowRight aria-hidden="true" />
             </Link>
             <button
               type="button"

@@ -4,14 +4,15 @@
    ========================================================================== */
 
 .navbar {
-  --navy: #0f2140;
+  --navy: #173d35;
   --blue: #1d63ed;
   --blue-dark: #1645c0;
   --charcoal: #1e293b;
   --muted: #475569;
   --line: #e5e9f0;
   --panel: #ffffff;
-  --hover-bg: #f1f6ff;
+  --hover-bg: #f8f5ee;
+  --swadesh-gold: #bd7f2b;
   position: relative;
   z-index: 2000;
 }
@@ -22,6 +23,7 @@
   color: rgba(255, 255, 255, 0.85);
   font-size: 0.78rem;
 }
+.navbar__topbar { display: none; }
 .navbar__topbar-inner {
   max-width: 1280px;
   margin: 0 auto;
@@ -54,16 +56,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 74px;
+  min-height: 98px;
   gap: 1rem;
 }
 
 /* Logo */
-.navbar__logo { display: flex; align-items: center; gap: 0.55rem; text-decoration: none; }
-.navbar__logo img { height: 40px; object-fit: contain; }
+.navbar__logo { display: flex; align-items: center; gap: .55rem; text-decoration: none; }
+.kresko-brand img { width: 48px; height: 48px; object-fit: contain; }
 .navbar__logo-text { display: flex; flex-direction: column; line-height: 1.05; }
-.navbar__logo-top { font-size: 1.15rem; font-weight: 800; letter-spacing: 0.5px; color: var(--navy); }
-.navbar__logo-bottom { font-size: 0.62rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--blue); }
+.navbar__logo-top { font-size: 1.5rem; font-weight: 950; letter-spacing: .8px; color: #d61f26; }
+.navbar__logo-bottom { font-size: 0.68rem; font-weight: 900; letter-spacing: 2.4px; text-transform: uppercase; color: #173d6a; margin-top: .25rem; }
 
 /* Desktop nav list */
 .navbar__nav { display: flex; align-items: center; list-style: none; gap: 0.15rem; margin: 0; padding: 0; }
@@ -99,7 +101,7 @@
   bottom: 0.28rem;
   height: 2px;
   border-radius: 2px;
-  background: var(--blue);
+  background: var(--swadesh-gold);
 }
 
 /* CTA button on the right */
@@ -113,13 +115,13 @@
   font-weight: 700;
   font-size: 0.82rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
   text-decoration: none;
   white-space: nowrap;
   transition: background 0.2s ease, transform 0.12s ease;
 }
-.navbar__cta:hover { background: var(--blue-dark); transform: translateY(-1px); }
+.navbar__cta:hover { background: #a96e21; transform: translateY(-1px); }
 
 /* Dropdown shell */
 .navbar__dropdown {
