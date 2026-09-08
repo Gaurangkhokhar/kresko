@@ -1,79 +1,40 @@
 import React from 'react';
 
 const events = [
-  {
-    date: 'Upcoming',
-    title: 'India International Chemical Expo 2026',
-    location: 'New Delhi, India',
-    desc: 'Visit the KRESKO Chemicals stall to explore our full range of cleaning concentrates, chlorine dioxide products, and OEM partnership opportunities.'
-  },
-  {
-    date: 'Upcoming',
-    title: 'Home & Personal Care Sourcing Meet',
-    location: 'Ahmedabad, India',
-    desc: 'A B2B networking event connecting concentrate manufacturers with private label brands and bulk buyers from across India.'
-  },
-  {
-    date: 'Past Event',
-    title: 'Export Buyers Connect — Middle East & Africa',
-    location: 'Mumbai, India',
-    desc: 'KRESKO hosted international distributors to showcase export-ready formulations, documentation support, and customized packaging capabilities.'
-  },
-  {
-    date: 'Past Event',
-    title: 'Herbal Formulation Workshop',
-    location: 'Vadodara, India',
-    desc: 'A hands-on technical workshop on herbal floor cleaners, hand washes, and botanical actives for our OEM partners.'
-  }
+  { year: '2026', type: 'Upcoming Expo', title: 'India International Chemical Expo 2026', location: 'New Delhi, India', image: '/images/f1.jpg', desc: 'Meet our team to explore hygiene concentrates, specialty chemicals and OEM manufacturing partnerships.' },
+  { year: '2026', type: 'Trade Exhibition', title: 'Home & Personal Care Sourcing Meet', location: 'Ahmedabad, India', image: '/images/f2.jpg', desc: 'Connecting concentrate manufacturers with private-label brands, distributors and bulk buyers.' },
+  { year: '2025', type: 'International Expo', title: 'Export Buyers Connect — Middle East & Africa', location: 'Mumbai, India', image: '/images/f3.jpg', desc: 'A meeting point for international distributors looking for export-ready formulations and technical support.' },
+  { year: '2025', type: 'Technical Workshop', title: 'Herbal Formulation Workshop', location: 'Vadodara, India', image: '/images/f4.jpg', desc: 'A focused workshop on sustainable home-care formulations and innovative product development.' },
+  { year: '2025', type: 'Industry Expo', title: 'Cleaning & Hygiene Solutions Expo', location: 'Gandhinagar, India', image: '/images/f5.jpg', desc: 'Discover high-performance concentrate solutions designed for modern cleaning and hygiene brands.' },
+  { year: '2024', type: 'B2B Networking', title: 'Global Chemical Partners Meet', location: 'Ahmedabad, India', image: '/images/f6.jpg', desc: 'Building lasting partnerships with manufacturers, formulators and sourcing teams from global markets.' },
 ];
 
 export default function Events() {
   return (
-    <div>
-      <section className="solution-banner" style={{ backgroundImage: "url('/images/photo-1519668963014-2308b08e5e9b.jpeg')", padding: '5rem 0' }}>
-        <div className="container solution-content">
-          <h2>Events</h2>
-          <p>Trade shows, sourcing meets, and technical workshops where you can meet the KRESKO team.</p>
+    <div className="events-reference-page">
+      <section className="events-reference-hero">
+        <div className="container">
+          <span className="events-kicker">CONNECT • COLLABORATE • GROW</span>
+          <h1>Events <em>/ Expo</em></h1>
+          <p>Meet Swadesh International at leading industry events, exhibitions and technical forums across India and global markets.</p>
         </div>
       </section>
 
-      <section className="section" style={{ backgroundColor: 'var(--color-bg-light)' }}>
+      <section className="section events-reference-list">
         <div className="container">
-          <div style={{ maxWidth: '900px', margin: '0 auto', marginBottom: '3.5rem', textAlign: 'center' }}>
-            <h2 style={{ color: 'var(--navy)' }}>Where We&apos;ll Be Next</h2>
-            <p>
-              We regularly exhibit at chemical and FMCG trade events across India and abroad. Reach out to
-              schedule a meeting with our team at any upcoming event.
-            </p>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
-            {events.map((e) => (
-              <div key={e.title} className="gallery-item-card" style={{ padding: '1.75rem', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.07)' }}>
-                <span
-                  style={{
-                    display: 'inline-block',
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: '999px',
-                    backgroundColor: e.date === 'Upcoming' ? 'var(--color-accent, #1a9c6b)' : '#8a94a6',
-                    color: '#fff',
-                    marginBottom: '0.9rem'
-                  }}
-                >
-                  {e.date}
-                </span>
-                <h3 style={{ color: 'var(--navy)', marginTop: 0 }}>{e.title}</h3>
-                <p style={{ fontSize: '0.85rem', color: '#5b6572', margin: '0 0 0.6rem' }}>📍 {e.location}</p>
-                <p style={{ fontSize: '0.92rem', marginBottom: 0 }}>{e.desc}</p>
-              </div>
+          <div className="events-reference-heading"><span className="events-kicker">OUR JOURNEY</span><h2>Events &amp; Expo</h2><p>From new product launches to global partnerships, our events are where ideas turn into meaningful business connections.</p></div>
+          <div className="events-reference-grid">
+            {events.map((event) => (
+              <article className="event-reference-card" key={event.title}>
+                <div className="event-reference-image"><img src={event.image} alt={event.title} /><span>{event.year}</span></div>
+                <div className="event-reference-content"><span className="event-reference-type">{event.type}</span><h3>{event.title}</h3><div className="event-reference-location"><i className="fa-solid fa-location-dot" /> {event.location}</div><p>{event.desc}</p><a href="#event-contact">View Event Details <i className="fa-solid fa-arrow-right" /></a></div>
+              </article>
             ))}
           </div>
         </div>
       </section>
+
+      <section className="events-reference-cta" id="event-contact"><div className="container"><span className="events-kicker">PLAN A CONVERSATION</span><h2>Meet us at the next event.</h2><p>Want to discuss a product, formulation or distribution partnership? Schedule a meeting with our team.</p><a href="/contact" className="btn btn-primary">Contact Our Team <i className="fa-solid fa-arrow-right" /></a></div></section>
     </div>
   );
 }
